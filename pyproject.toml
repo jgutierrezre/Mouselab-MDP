@@ -1,0 +1,13 @@
+[project]
+name = "mouselab-mdp"
+version = "0.1.0"
+description = "Helper environment for the Mouselab-MDP demo experiment"
+requires-python = ">=3.11"
+dependencies = [
+  "numpy",
+  "scipy",
+  "toolz",
+]
+
+[tool.uv]
+package = false

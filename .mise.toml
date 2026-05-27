@@ -1,0 +1,19 @@
+[tools]
+python = "3.11"
+node = "20"
+
+[tasks.setup]
+description = "Install Python and Node dependencies"
+run = "uv sync && npm install"
+
+[tasks.exp]
+description = "Generate trials and compile CoffeeScript"
+run = "cd experiment && make exp"
+
+[tasks.watch]
+description = "Watch CoffeeScript compilation"
+run = "cd experiment && make watch"
+
+[tasks.serve]
+description = "Serve the experiment locally"
+run = "cd experiment && python -m http.server"

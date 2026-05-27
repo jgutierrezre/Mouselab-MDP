@@ -3,6 +3,7 @@
 
 import json
 import random
+from pathlib import Path
 
 def emoji():
     return random.choice('😀😃😄😁😆😅😂️😊😇🙂🙃😉😌😍😘😗😙😚😋😜😝😛🤑🤗🤓😎')
@@ -77,7 +78,7 @@ def main():
 
     # trials = list(grid_trials())
     trials = list(grid_trials())
-    outfile = 'static/json/trials.json'
+    outfile = Path(__file__).resolve().parents[1] / 'static/json/trials.json'
     with open(outfile, 'w+') as f:
         json.dump(trials, f)
 

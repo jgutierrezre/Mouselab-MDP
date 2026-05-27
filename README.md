@@ -3,7 +3,11 @@ Mouselab-MDP is a [JsPsych](https://github.com/jodeleeuw/jsPsych/) plugin that r
 
 # Usage
 
-To view the experiment, you must use an http server. You can start one by running `python -m http.server` in the experiment/ directory. Then visit http://localhost:8000/ in your browser.
+To set up the repo, install [mise](https://mise.jdx.dev/) and [uv](https://docs.astral.sh/uv/) if needed, then run `mise install` followed by `mise run setup` from the repository root. That installs the pinned Python and Node runtimes, syncs the Python helper dependencies, and installs the CoffeeScript compiler used by the build.
+
+To build the experiment, run `mise run exp` from the repository root. To keep recompiling CoffeeScript as you edit, run `mise run watch`.
+
+To view the experiment, use an http server. You can run `mise run serve` from the repository root or start one manually with `python -m http.server` in the experiment/ directory. Then visit http://localhost:8000/ in your browser.
 
 A basic description of how to use the plugin can be found in our RLDM [paper](https://www.researchgate.net/publication/314258117_Mouselab-MDP_A_new_paradigm_for_tracing_how_people_plan) . There is also a limited amount of inline documentation in the source coffeescript. Pay special attention to the constructor of `MouselabMDP`, beginning at [line 90](https://github.com/fredcallaway/Mouselab-MDP/blob/master/jspsych-mouselab-mdp.coffee#L90).
 
