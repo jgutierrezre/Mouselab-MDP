@@ -74,10 +74,26 @@ def fancy_trials():
     }
 
 
+def tree_trials():
+    graph, layout, labels = build('binary_tree', levels=4)
+    yield {
+        'graph': graph,
+        'layout': layout,
+        'stateLabels': labels,
+        'stateDisplay': 'click',
+        'edgeDisplay': 'hover',
+        'keys': {'A': 65, 'B': 66},
+        'centerMessage': '<b>Binary tree</b><br>Choose A or B',
+        'lowerMessage': 'Press A or B to move through the tree.',
+        'playerImage': 'static/images/plane.png',
+        'playerImageScale': 0.12,
+        'initial': '0'
+    }
+
+
 def main():
 
-    # trials = list(grid_trials())
-    trials = list(grid_trials())
+    trials = list(tree_trials())
     outfile = Path(__file__).resolve().parents[1] / 'static/json/trials.json'
     with open(outfile, 'w+') as f:
         json.dump(trials, f)
@@ -180,6 +196,42 @@ class Layouts:
         return graph, layout
 
 
+    def binary_tree(levels=4):
+        graph = {}
+        layout = {}
+        labels = {}
+        leaf_rewards = {}
+        names = it.count()
+
+        def reward():
+            return random.randint(-9, 10)
+
+        def node(level, x, y):
+            name = str(next(names))
+            layout[name] = (x, y)
+            labels[name] = emoji()
+            graph[name] = {}
+            if level == levels - 1:
+                leaf_rewards[name] = reward()
+                return name
+            if level < levels - 1:
+                spread = 2 ** (levels - level - 2)
+                upper = node(level + 1, x + 1, y - spread)
+                lower = node(level + 1, x + 1, y + spread)
+                graph[name]['A'] = [
+                    [0.75, leaf_rewards[upper] if level == levels - 2 else 0, upper],
+                    [0.25, leaf_rewards[lower] if level == levels - 2 else 0, lower],
+                ]
+                graph[name]['B'] = [
+                    [0.25, leaf_rewards[upper] if level == levels - 2 else 0, upper],
+                    [0.75, leaf_rewards[lower] if level == levels - 2 else 0, lower],
+                ]
+            return name
+
+        node(0, 0, 0)
+        return graph, layout, labels
+
+
     def heart(size):
         last_full = (size + 1)* 2
 
@@ -220,7 +272,7 @@ class Layouts:
 
 def rescale(layout):
     names, xy = zip(*layout.items())
-    x, y = np.array(list(xy)).T
+    x, y = np.array(list(xy), dtype=float).T
     y *= -1
     x -= x.min()
     y -= y.min()
@@ -230,7 +282,11 @@ def rescale(layout):
 
 
 def build(kind, **kwargs):
-    graph, layout = getattr(Layouts, kind)(**kwargs)
+    result = getattr(Layouts, kind)(**kwargs)
+    if len(result) == 3:
+        graph, layout, labels = result
+        return graph, rescale(layout), labels
+    graph, layout = result
     return graph, rescale(layout)
 
 

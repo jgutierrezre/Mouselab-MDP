@@ -23,7 +23,6 @@ jsPsych.plugins['mouselab-mdp'] = (function() {
   };
   NULL = function() {
     var args;
-    args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
     return null;
   };
   LOG_INFO = PRINT;
@@ -118,6 +117,7 @@ jsPsych.plugins['mouselab-mdp'] = (function() {
         rt: [],
         actions: [],
         actionTimes: [],
+        transitions: [],
         queries: {
           click: {
             state: {
@@ -182,26 +182,54 @@ jsPsych.plugins['mouselab-mdp'] = (function() {
     }
 
     MouselabMDP.prototype.handleKey = function(s0, a) {
-      var r, ref, s1, s1g;
+      var edgeView, r, ref, s1, s1g, transition;
       LOG_DEBUG('handleKey', s0, a);
       this.data.actions.push(a);
       this.data.actionTimes.push(Date.now() - this.initTime);
-      ref = this.graph[s0][a], r = ref[0], s1 = ref[1];
+      transition = this.sampleTransition(this.graph[s0][a]);
+      r = transition.reward;
+      s1 = transition.nextState;
+      edgeView = this.edgeViews != null ? this.edgeViews[s0] != null ? this.edgeViews[s0][a] : void 0 : void 0;
+      this.data.transitions.push({
+        state: s0,
+        action: a,
+        reward: r,
+        nextState: s1,
+        probability: transition.probability
+      });
       LOG_DEBUG(s0 + ", " + a + " -> " + r + ", " + s1);
       s1g = this.states[s1];
-      return this.player.animate({
-        left: s1g.left,
-        top: s1g.top
-      }, {
-        duration: dist(this.player, s0) * 4,
-        onChange: this.canvas.renderAll.bind(this.canvas),
-        onComplete: (function(_this) {
-          return function() {
-            _this.addScore(r);
-            return _this.arrive(s1);
+      return this.animateMove(s1g, r, edgeView != null ? edgeView.branchPoint : void 0, s1);
+    };
+
+    MouselabMDP.prototype.sampleTransition = function(edge) {
+      var outcome, roll, total, weight;
+      if (!this.isStochasticEdge(edge)) {
+        return {
+          reward: edge[0],
+          nextState: edge[1],
+          probability: 1
+        };
+      }
+      roll = Math.random();
+      total = 0;
+      for (weight = 0; weight < edge.length; weight++) {
+        outcome = edge[weight];
+        total += outcome[0];
+        if (roll <= total) {
+          return {
+            reward: outcome[1],
+            nextState: outcome[2],
+            probability: outcome[0]
           };
-        })(this)
-      });
+        }
+      }
+      outcome = edge[edge.length - 1];
+      return {
+        reward: outcome[1],
+        nextState: outcome[2],
+        probability: outcome[0]
+      };
     };
 
     MouselabMDP.prototype.clickState = function(g, s) {
@@ -213,20 +241,46 @@ jsPsych.plugins['mouselab-mdp'] = (function() {
       }
     };
 
-    MouselabMDP.prototype.mouseoverState = function(g, s) {
-      LOG_DEBUG("mouseoverState " + s);
-      if (this.stateLabels && this.stateDisplay === 'hover') {
-        g.setLabel(this.stateLabels[s]);
-        return this.recordQuery('mouseover', 'state', s);
+    MouselabMDP.prototype.animateMove = function(s1g, reward, via, finalState) {
+      var duration, finalDuration, finalPoint, viaDuration, viaPoint;
+      viaPoint = via != null ? via : null;
+      finalPoint = {
+        left: s1g.left,
+        top: s1g.top
+      };
+      duration = dist(this.player, s1g) * 4;
+      if (!viaPoint) {
+        return this.player.animate(finalPoint, {
+          duration: duration,
+          onChange: this.canvas.renderAll.bind(this.canvas),
+          onComplete: (function(_this) {
+            return function() {
+              _this.addScore(reward);
+              return _this.arrive(finalState);
+            };
+          })(this)
+        });
       }
-    };
-
-    MouselabMDP.prototype.mouseoutState = function(g, s) {
-      LOG_DEBUG("mouseoutState " + s);
-      if (this.stateLabels && this.stateDisplay === 'hover') {
-        g.setLabel('');
-        return this.recordQuery('mouseout', 'state', s);
-      }
+      viaDuration = duration * (dist(this.player, viaPoint) / (dist(this.player, viaPoint) + dist(viaPoint, s1g)));
+      finalDuration = duration - viaDuration;
+      return this.player.animate(viaPoint, {
+        duration: viaDuration,
+        onChange: this.canvas.renderAll.bind(this.canvas),
+        onComplete: (function(_this) {
+          return function() {
+            return _this.player.animate(finalPoint, {
+              duration: finalDuration,
+              onChange: _this.canvas.renderAll.bind(_this.canvas),
+              onComplete: (function(_this) {
+                return function() {
+                  _this.addScore(reward);
+                  return _this.arrive(finalState);
+                };
+              })(_this)
+            });
+          };
+        })(this)
+      });
     };
 
     MouselabMDP.prototype.clickEdge = function(g, s0, r, s1) {
@@ -252,6 +306,10 @@ jsPsych.plugins['mouselab-mdp'] = (function() {
         g.setLabel('');
         return this.recordQuery('mouseout', 'edge', s0 + "__" + s1);
       }
+    };
+
+    MouselabMDP.prototype.isStochasticEdge = function(edge) {
+      return Array.isArray(edge[0]);
     };
 
     MouselabMDP.prototype.getEdgeLabel = function(s0, r, s1) {
@@ -338,7 +396,8 @@ jsPsych.plugins['mouselab-mdp'] = (function() {
       LOG_DEBUG('initPlayer');
       top = this.states[this.initial].top;
       left = this.states[this.initial].left;
-      img.scale(0.3);
+      var scale = (this.playerImageScale != null ? this.playerImageScale : 0.3);
+      img.scale(scale);
       img.set('top', top).set('left', left);
       this.draw(img);
       return this.player = img;
@@ -358,8 +417,10 @@ jsPsych.plugins['mouselab-mdp'] = (function() {
         height: height * SIZE
       });
       this.canvas = new fabric.Canvas('mouselab-canvas', {
-        selection: false
+        selection: false,
+        subTargetCheck: true
       });
+      this.edgeViews = {};
       this.states = {};
       ref1 = this.layout;
       for (s in ref1) {
@@ -375,13 +436,25 @@ jsPsych.plugins['mouselab-mdp'] = (function() {
       for (s0 in ref2) {
         actions = ref2[s0];
         results.push((function() {
-          var ref3, results1;
+          var children, probabilities, ref3, results1, splitEdge;
           results1 = [];
           for (a in actions) {
             ref3 = actions[a], r = ref3[0], s1 = ref3[1];
-            results1.push(this.draw(new Edge(this.states[s0], r, this.states[s1], {
-              label: this.edgeDisplay === 'always' ? this.getEdgeLabel(s0, r, s1) : ''
-            })));
+            if (this.isStochasticEdge(ref3)) {
+              children = [this.states[ref3[0][2]], this.states[ref3[1][2]]];
+              probabilities = [ref3[0][0], ref3[1][0]];
+              this.edgeViews[s0] == null ? this.edgeViews[s0] = {} : void 0;
+              splitEdge = this.edgeViews[s0][a] = new SplitEdge(this.states[s0], children, probabilities, {
+                actionName: a,
+                edgeDisplay: this.edgeDisplay
+              });
+              splitEdge.attach(this);
+              results1.push(splitEdge);
+            } else {
+              results1.push(this.draw(new Edge(this.states[s0], r, this.states[s1], {
+                label: this.edgeDisplay === 'always' ? this.getEdgeLabel(s0, r, s1) : ''
+              })));
+            }
           }
           return results1;
         }).call(this));
@@ -444,13 +517,8 @@ jsPsych.plugins['mouselab-mdp'] = (function() {
       this.on('mousedown', function() {
         return mdp.clickState(this, this.name);
       });
-      this.on('mouseover', function() {
-        return mdp.mouseoverState(this, this.name);
-      });
-      this.on('mouseout', function() {
-        return mdp.mouseoutState(this, this.name);
-      });
       State.__super__.constructor.call(this, [this.circle, this.label]);
+      this.objectCaching = false;
       this.setLabel(conf.label);
     }
 
@@ -499,6 +567,7 @@ jsPsych.plugins['mouselab-mdp'] = (function() {
         return mdp.mouseoutEdge(this, c1.name, reward, c2.name);
       });
       Edge.__super__.constructor.call(this, [this.arrow, this.label]);
+      this.objectCaching = false;
       this.setLabel(label);
     }
 
@@ -515,6 +584,85 @@ jsPsych.plugins['mouselab-mdp'] = (function() {
     return Edge;
 
   })(fabric.Group);
+  SplitEdge = (function() {
+    function SplitEdge(c1, children, probabilities, config) {
+      if (config == null) {
+        config = {};
+      }
+      this.children = children;
+      this.probabilities = probabilities;
+      this.actionName = config.actionName != null ? config.actionName : '';
+      this.edgeDisplay = (config.edgeDisplay != null ? config.edgeDisplay : 'hover');
+      this.parent = c1;
+      this.branchPoint = null;
+      this.objects = [];
+      this.objectCaching = false;
+    };
+
+    SplitEdge.prototype.attach = function(mdpInstance) {
+      var arrow, branchX, branchY, childState, i, labelText, midX, midY, radiusGap, stemEnd, stemStart;
+      radiusGap = 8;
+      stemStart = this.parent.left + this.parent.radius + radiusGap;
+      branchX = this.parent.left + 0.5 * (this.children[0].left - this.parent.left);
+      branchY = this.parent.top;
+      stemEnd = {
+        left: branchX,
+        top: branchY
+      };
+      this.branchPoint = stemEnd;
+      mdpInstance.draw(new fabric.Line([stemStart, this.parent.top, branchX, branchY], {
+        stroke: '#555',
+        selectable: false,
+        evented: false,
+        strokeWidth: 3,
+        strokeLineCap: 'round'
+      }));
+      for (i = 0; i < this.children.length; i++) {
+        childState = this.children[i];
+        labelText = this.actionName + ' ' + Math.round(this.probabilities[i] * 100) + '%\n' + (this.actionName === 'A' ? 'B' : 'A') + ' ' + Math.round((1 - this.probabilities[i]) * 100) + '%';
+        midX = branchX + 0.55 * (childState.left - branchX);
+        midY = branchY + 0.55 * (childState.top - branchY);
+        arrow = mdpInstance.draw(new Arrow(branchX, branchY, childState.left, childState.top, 0, childState.radius + radiusGap));
+        arrow.objectCaching = false;
+        arrow.branchLabel = new Text(labelText, midX, midY, {
+          fill: '#444',
+          fontSize: SIZE / 6,
+          textBackgroundColor: 'white'
+        });
+        arrow.branchLabel.objectCaching = false;
+        arrow.branchLabel.lineHeight = 1.1;
+        arrow.branchLabel.evented = false;
+        arrow.branchLabel.selectable = false;
+        if (this.edgeDisplay !== 'always') {
+          arrow.branchLabel.opacity = 0;
+        }
+        mdpInstance.draw(arrow.branchLabel);
+        arrow.on('mouseover', (function(_this, branchLabel, labelText) {
+          return function() {
+            if (_this.edgeDisplay === 'hover' || _this.edgeDisplay === 'always') {
+              branchLabel.opacity = 1;
+              branchLabel.setFill('#444');
+              branchLabel.dirty = true;
+              return mdpInstance.canvas.renderAll();
+            }
+          };
+        })(this, arrow.branchLabel, labelText));
+        arrow.on('mouseout', (function(_this, branchLabel) {
+          return function() {
+            if (_this.edgeDisplay === 'hover') {
+              branchLabel.opacity = 0;
+              branchLabel.dirty = true;
+              return mdpInstance.canvas.renderAll();
+            }
+          };
+        })(this, arrow.branchLabel));
+      }
+      return this;
+    };
+
+    return SplitEdge;
+
+  })();
   Arrow = (function(superClass) {
     extend(Arrow, superClass);
 
@@ -568,7 +716,9 @@ jsPsych.plugins['mouselab-mdp'] = (function() {
         fontSize: SIZE / 8
       };
       _.extend(conf, config);
+      conf.objectCaching = false;
       Text.__super__.constructor.call(this, txt, conf);
+      this.objectCaching = false;
     }
 
     return Text;
