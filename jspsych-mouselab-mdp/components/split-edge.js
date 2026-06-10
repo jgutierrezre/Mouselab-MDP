@@ -8,6 +8,7 @@
             this.children = children;
             this.probabilities = probabilities;
             this.actionName = config.actionName != null ? config.actionName : "";
+            this.parentActions = config.parentActions || {};
             this.edgeDisplay = config.edgeDisplay != null ? config.edgeDisplay : "hover";
             this.SIZE = config.SIZE || ctx.SIZE;
             this.parent = c1;
@@ -18,20 +19,35 @@
 
         SplitEdge.prototype.attach = function (mdpInstance) {
             var arrow,
+                avgChildX,
+                avgChildY,
                 branchX,
                 branchY,
                 childState,
                 i,
+                j,
+                labelParts,
                 labelText,
                 midX,
                 midY,
                 radiusGap,
                 stemEnd,
-                stemStart;
+                stemStart,
+                targetName,
+                allOutcomes,
+                actName;
             radiusGap = 8;
             stemStart = this.parent.left + this.parent.radius + radiusGap;
-            branchX = this.parent.left + 0.5 * (this.children[0].left - this.parent.left);
-            branchY = this.parent.top;
+            avgChildX = 0;
+            avgChildY = 0;
+            for (i = 0; i < this.children.length; i++) {
+                avgChildX += this.children[i].left;
+                avgChildY += this.children[i].top;
+            }
+            avgChildX /= this.children.length;
+            avgChildY /= this.children.length;
+            branchX = this.parent.left + 0.5 * (avgChildX - this.parent.left);
+            branchY = this.parent.top + 0.5 * (avgChildY - this.parent.top);
             stemEnd = {
                 left: branchX,
                 top: branchY,
@@ -48,15 +64,20 @@
             );
             for (i = 0; i < this.children.length; i++) {
                 childState = this.children[i];
-                labelText =
-                    this.actionName +
-                    " " +
-                    Math.round(this.probabilities[i] * 100) +
-                    "%\n" +
-                    (this.actionName === "A" ? "B" : "A") +
-                    " " +
-                    Math.round((1 - this.probabilities[i]) * 100) +
-                    "%";
+                targetName = childState.name;
+                labelParts = [];
+                for (actName in this.parentActions) {
+                    allOutcomes = this.parentActions[actName];
+                    for (j = 0; j < allOutcomes.length; j++) {
+                        if (allOutcomes[j][2] === targetName) {
+                            labelParts.push(
+                                actName + " " + Math.round(allOutcomes[j][0] * 100) + "%",
+                            );
+                            break;
+                        }
+                    }
+                }
+                labelText = labelParts.join("\n");
                 midX = branchX + 0.55 * (childState.left - branchX);
                 midY = branchY + 0.55 * (childState.top - branchY);
                 arrow = mdpInstance.draw(

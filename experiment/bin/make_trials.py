@@ -74,7 +74,7 @@ def fancy_trials():
     }
 
 
-def tree_trials():
+def all_trials():
     graph, layout, labels = build('binary_tree', levels=4)
     yield {
         'graph': graph,
@@ -90,10 +90,56 @@ def tree_trials():
         'initial': '0'
     }
 
+    graph, layout, labels = build('ternary_tree', levels=4)
+    yield {
+        'graph': graph,
+        'layout': layout,
+        'stateLabels': labels,
+        'stateDisplay': 'click',
+        'edgeDisplay': 'hover',
+        'keys': {'A': 65, 'B': 66, 'C': 67},
+        'centerMessage': '<b>Ternary tree</b><br>Choose A, B, or C',
+        'lowerMessage': 'Press A, B, or C to move through the tree.',
+        'playerImage': 'static/images/plane.png',
+        'playerImageScale': 0.12,
+        'SIZE': 60,
+        'initial': '0'
+    }
+
+    graph, layout, labels = build('trellis', depth=3, width=2)
+    yield {
+        'graph': graph,
+        'layout': layout,
+        'stateLabels': labels,
+        'stateDisplay': 'click',
+        'edgeDisplay': 'hover',
+        'keys': {'A': 65, 'B': 66},
+        'centerMessage': '<b>Width-2 Trellis</b><br>Choose A or B',
+        'lowerMessage': 'Press A or B. Paths can converge on the same state.',
+        'playerImage': 'static/images/plane.png',
+        'playerImageScale': 0.12,
+        'initial': '0'
+    }
+
+    graph, layout, labels = build('trellis', depth=3, width=3)
+    yield {
+        'graph': graph,
+        'layout': layout,
+        'stateLabels': labels,
+        'stateDisplay': 'click',
+        'edgeDisplay': 'hover',
+        'keys': {'A': 65, 'B': 66, 'C': 67},
+        'centerMessage': '<b>Width-3 Trellis</b><br>Choose A, B, or C',
+        'lowerMessage': 'Press A, B, or C. Paths can converge on the same state.',
+        'playerImage': 'static/images/plane.png',
+        'playerImageScale': 0.12,
+        'initial': '0'
+    }
+
 
 def main():
 
-    trials = list(tree_trials())
+    trials = list(all_trials())
     outfile = Path(__file__).resolve().parents[1] / 'static/json/trials.json'
     with open(outfile, 'w+') as f:
         json.dump(trials, f)
@@ -229,6 +275,109 @@ class Layouts:
             return name
 
         node(0, 0, 0)
+        return graph, layout, labels
+
+
+    def ternary_tree(levels=4):
+        graph = {}
+        layout = {}
+        labels = {}
+        leaf_rewards = {}
+        names = it.count()
+
+        def reward():
+            return random.randint(-9, 10)
+
+        def node(level, x, y):
+            name = str(next(names))
+            layout[name] = (x, y)
+            labels[name] = emoji()
+            graph[name] = {}
+            if level == levels - 1:
+                leaf_rewards[name] = reward()
+                return name
+            if level < levels - 1:
+                spread = 2 ** (levels - level - 2)
+                upper = node(level + 1, x + 1, y - spread)
+                middle = node(level + 1, x + 1, y)
+                lower = node(level + 1, x + 1, y + spread)
+                r_u = leaf_rewards[upper] if level == levels - 2 else 0
+                r_m = leaf_rewards[middle] if level == levels - 2 else 0
+                r_l = leaf_rewards[lower] if level == levels - 2 else 0
+                graph[name]['A'] = [
+                    [0.60, r_u, upper],
+                    [0.25, r_m, middle],
+                    [0.15, r_l, lower],
+                ]
+                graph[name]['B'] = [
+                    [0.15, r_u, upper],
+                    [0.60, r_m, middle],
+                    [0.25, r_l, lower],
+                ]
+                graph[name]['C'] = [
+                    [0.25, r_u, upper],
+                    [0.15, r_m, middle],
+                    [0.60, r_l, lower],
+                ]
+            return name
+
+        node(0, 0, 0)
+        return graph, layout, labels
+
+
+    TRELLIS_PROBS = {
+        2: [[0.75, 0.25],
+            [0.25, 0.75]],
+        3: [[0.60, 0.25, 0.15],
+            [0.20, 0.60, 0.20],
+            [0.15, 0.25, 0.60]],
+    }
+
+    def trellis(depth=3, width=2):
+        graph = {}
+        layout = {}
+        labels = {}
+        leaf_rewards = {}
+
+        def reward():
+            return random.randint(-9, 10)
+
+        action_names = [chr(65 + i) for i in range(width)]
+
+        root = '0'
+        layout[root] = (0, 0)
+        labels[root] = emoji()
+        graph[root] = {}
+
+        for layer in range(1, depth + 1):
+            for idx in range(width):
+                name = f'{layer}_{idx}'
+                layout[name] = (layer, idx * 3)
+                labels[name] = emoji()
+                graph[name] = {}
+                if layer == depth:
+                    leaf_rewards[name] = reward()
+
+        probs = Layouts.TRELLIS_PROBS[width]
+        for a_idx, a_name in enumerate(action_names):
+            outcomes = []
+            for t_idx in range(width):
+                target = f'1_{t_idx}'
+                r = leaf_rewards[target] if depth == 1 else 0
+                outcomes.append([probs[a_idx][t_idx], r, target])
+            graph[root][a_name] = outcomes
+
+        for layer in range(1, depth):
+            for idx in range(width):
+                src = f'{layer}_{idx}'
+                for a_idx, a_name in enumerate(action_names):
+                    outcomes = []
+                    for t_idx in range(width):
+                        target = f'{layer + 1}_{t_idx}'
+                        r = leaf_rewards[target] if layer + 1 == depth else 0
+                        outcomes.append([probs[a_idx][t_idx], r, target])
+                    graph[src][a_name] = outcomes
+
         return graph, layout, labels
 
 

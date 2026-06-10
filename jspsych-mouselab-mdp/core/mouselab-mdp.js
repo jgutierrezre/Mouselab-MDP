@@ -271,7 +271,7 @@
         };
 
         MouselabMDP.prototype.isStochasticEdge = function (edge) {
-            return Array.isArray(edge[0]);
+            return Array.isArray(edge[0]) && typeof edge[0][0] === "number";
         };
 
         MouselabMDP.prototype.getEdgeLabel = function (s0, r, s1) {
@@ -413,8 +413,12 @@
                         for (a in actions) {
                             ((ref3 = actions[a]), (r = ref3[0]), (s1 = ref3[1]));
                             if (this.isStochasticEdge(ref3)) {
-                                children = [this.states[ref3[0][2]], this.states[ref3[1][2]]];
-                                probabilities = [ref3[0][0], ref3[1][0]];
+                                children = ref3.map(function (outcome) {
+                                    return this.states[outcome[2]];
+                                }, this);
+                                probabilities = ref3.map(function (outcome) {
+                                    return outcome[0];
+                                });
                                 this.edgeViews[s0] == null ? (this.edgeViews[s0] = {}) : void 0;
                                 splitEdge = this.edgeViews[s0][a] = new ctx.SplitEdge(
                                     this.states[s0],
@@ -422,6 +426,7 @@
                                     probabilities,
                                     {
                                         actionName: a,
+                                        parentActions: actions,
                                         edgeDisplay: this.edgeDisplay,
                                         SIZE: this.SIZE,
                                     },
