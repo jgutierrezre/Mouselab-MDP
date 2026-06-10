@@ -5,10 +5,9 @@
   "description": "Tooling for the Mouselab-MDP demo experiment",
   "license": "MIT",
   "scripts": {
-    "serve": "http-server experiment -p 8000"
+    "serve": "node server.js"
   },
   "devDependencies": {
-    "coffeescript": "2.2.2",
-    "http-server": "^14.1.1"
+    "coffeescript": "2.2.2"
   }
 }

@@ -31,20 +31,20 @@ $(window).resize(function() {
 
 $(window).resize();
 
-loadJson = function(file) {
-  var result;
-  result = $.ajax({
+loadJson = function(file, callback) {
+  return $.ajax({
     dataType: 'json',
     url: file,
-    async: false
+    success: function(data) {
+      return callback(data);
+    }
   });
-  return result.responseJSON;
 };
 
 $(window).on('load', function() {
-  var trials;
-  trials = loadJson("static/json/trials.json");
-  return initializeExperiment(trials);
+  return loadJson("static/json/trials.json", function(trials) {
+    return initializeExperiment(trials);
+  });
 });
 
 initializeExperiment = function(trials) {

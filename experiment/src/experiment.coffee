@@ -24,16 +24,15 @@ $(window).resize()
 
 
 
-loadJson = (file) ->
-  result = $.ajax
+loadJson = (file, callback) ->
+  $.ajax
     dataType: 'json'
     url: file
-    async: false
-  return result.responseJSON
+    success: (data) -> callback(data)
 
 $(window).on 'load', ->
-  trials = loadJson "static/json/trials.json"
-  initializeExperiment trials
+  loadJson "static/json/trials.json", (trials) ->
+    initializeExperiment trials
 
 initializeExperiment = (trials) ->
   console.log 'INITIALIZE EXPERIMENT'

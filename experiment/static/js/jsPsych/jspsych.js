@@ -548,8 +548,11 @@ var jsPsych = (function() {
       DOM_target.html(timeline.end_message);
     }
 
+    var fullscreenEl = document.fullscreenElement || document.msFullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement;
+    if (!fullscreenEl) { return; }
+
     if (document.exitFullscreen) {
-      document.exitFullscreen();
+      document.exitFullscreen().catch(function() {});
     } else if (document.msExitFullscreen) {
       document.msExitFullscreen();
     } else if (document.mozCancelFullScreen) {
@@ -1421,7 +1424,13 @@ jsPsych.pluginAPI = (function() {
   }
   // end patch
 
-  var context = (typeof window.AudioContext !== 'undefined') ? new AudioContext() : null;
+  var context = null;
+  var getContext = function() {
+    if (context === null && typeof window.AudioContext !== 'undefined') {
+      context = new AudioContext();
+    }
+    return context;
+  };
   var audio_buffers = [];
 
   module.getAudioBuffer = function(audioID) {
@@ -1457,7 +1466,7 @@ jsPsych.pluginAPI = (function() {
       request.open('GET', source, true);
       request.responseType = 'arraybuffer';
       request.onload = function() {
-        context.decodeAudioData(request.response, function(buffer) {
+        getContext().decodeAudioData(request.response, function(buffer) {
           audio_buffers[source] = buffer;
           n_loaded++;
           loadfn(n_loaded);
