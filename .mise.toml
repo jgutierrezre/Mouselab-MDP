@@ -16,4 +16,4 @@ run = "cd experiment && make watch"
 
 [tasks.serve]
 description = "Serve the experiment locally"
-run = "cd experiment && python -m http.server"
+run = "npm run serve"

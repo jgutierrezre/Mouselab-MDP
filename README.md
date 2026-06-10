@@ -7,7 +7,7 @@ To set up the repo, install [mise](https://mise.jdx.dev/) and [uv](https://docs.
 
 To build the experiment, run `mise run exp` from the repository root. To keep recompiling CoffeeScript as you edit, run `mise run watch`.
 
-To view the experiment, use an http server. You can run `mise run serve` from the repository root or start one manually with `python -m http.server` in the experiment/ directory. Then visit http://localhost:8000/ in your browser.
+To view the experiment, use an http server. You can run `mise run serve` from the repository root or start one manually with `npx http-server experiment -p 8000`. Then visit http://localhost:8000/ in your browser.
 
 A basic description of how to use the plugin can be found in our RLDM [paper](https://www.researchgate.net/publication/314258117_Mouselab-MDP_A_new_paradigm_for_tracing_how_people_plan) . There is also a limited amount of inline documentation in the source coffeescript. Pay special attention to the constructor of `MouselabMDP`, beginning at [line 90](https://github.com/fredcallaway/Mouselab-MDP/blob/master/jspsych-mouselab-mdp.coffee#L90).
 

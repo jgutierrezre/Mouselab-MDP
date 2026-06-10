@@ -4,7 +4,11 @@
   "version": "0.1.0",
   "description": "Tooling for the Mouselab-MDP demo experiment",
   "license": "MIT",
+  "scripts": {
+    "serve": "http-server experiment -p 8000"
+  },
   "devDependencies": {
-    "coffeescript": "2.2.2"
+    "coffeescript": "2.2.2",
+    "http-server": "^14.1.1"
   }
 }
