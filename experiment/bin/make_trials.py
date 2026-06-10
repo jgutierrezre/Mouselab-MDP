@@ -102,7 +102,7 @@ def all_trials():
         'lowerMessage': 'Press A, B, or C to move through the tree.',
         'playerImage': 'static/images/plane.png',
         'playerImageScale': 0.12,
-        'SIZE': 60,
+        'SIZE': 100,
         'initial': '0'
     }
 
@@ -345,7 +345,7 @@ class Layouts:
         action_names = [chr(65 + i) for i in range(width)]
 
         root = '0'
-        layout[root] = (0, 0)
+        layout[root] = (0, (width - 1) * 1.5)
         labels[root] = emoji()
         graph[root] = {}
 

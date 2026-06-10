@@ -28,6 +28,7 @@
                 ref11,
                 ref12,
                 ref13,
+                ref14,
                 ref2,
                 ref3,
                 ref4,
@@ -52,6 +53,8 @@
                 (this.playerImage =
                     (ref8 = config.playerImage) != null ? ref8 : "static/images/plane.png"),
                 (this.SIZE = (ref9 = config.SIZE) != null ? ref9 : ctx.SIZE),
+                (this.ANIMATION_SPEED =
+                    (ref14 = config.ANIMATION_SPEED) != null ? ref14 : ctx.CONFIG.ANIMATION_SPEED),
                 (leftMessage = (ref10 = config.leftMessage) != null ? ref10 : "Round: 1/1"),
                 (centerMessage = (ref11 = config.centerMessage) != null ? ref11 : "&nbsp;"),
                 (rightMessage =
@@ -156,6 +159,19 @@
                 nextState: s1,
                 probability: transition.probability,
             });
+            if (edgeView != null && transition.outcomeIndex != null) {
+                var trailColor =
+                    ctx.CONFIG.ACTION_COLORS[a.toUpperCase().charCodeAt(0) - 65] ||
+                    ctx.CONFIG.TRAIL_COLOR;
+                edgeView.paintTrail(
+                    transition.outcomeIndex,
+                    trailColor,
+                    ctx.CONFIG.TRAIL_WIDTH,
+                );
+            }
+            if (this.player) {
+                this.canvas.bringToFront(this.player);
+            }
             ctx.LOG_DEBUG(s0 + ", " + a + " -> " + r + ", " + s1);
             s1g = this.states[s1];
             return this.animateMove(s1g, r, edgeView != null ? edgeView.branchPoint : void 0, s1);
@@ -168,6 +184,7 @@
                     reward: edge[0],
                     nextState: edge[1],
                     probability: 1,
+                    outcomeIndex: void 0,
                 };
             }
             roll = Math.random();
@@ -180,6 +197,7 @@
                         reward: outcome[1],
                         nextState: outcome[2],
                         probability: outcome[0],
+                        outcomeIndex: weight,
                     };
                 }
             }
@@ -188,6 +206,7 @@
                 reward: outcome[1],
                 nextState: outcome[2],
                 probability: outcome[0],
+                outcomeIndex: edge.length - 1,
             };
         };
 
@@ -200,46 +219,68 @@
             }
         };
 
-        MouselabMDP.prototype.animateMove = function (s1g, reward, via, finalState) {
-            var duration, finalDuration, finalPoint, viaDuration, viaPoint;
-            viaPoint = via != null ? via : null;
-            finalPoint = {
-                left: s1g.left,
-                top: s1g.top,
-            };
-            duration = ctx.dist(this.player, s1g) * 4;
-            if (!viaPoint) {
-                return this.player.animate(finalPoint, {
-                    duration: duration,
-                    onChange: this.canvas.renderAll.bind(this.canvas),
-                    onComplete: (function (_this) {
-                        return function () {
-                            _this.addScore(reward);
-                            return _this.arrive(finalState);
-                        };
-                    })(this),
-                });
+        MouselabMDP.prototype.mouseoverState = function (g, s) {
+            ctx.LOG_DEBUG("mouseoverState " + s);
+            if (this.stateLabels && this.stateDisplay === "hover") {
+                g.setLabel(this.stateLabels[s]);
             }
-            viaDuration =
-                duration *
-                (ctx.dist(this.player, viaPoint) /
-                    (ctx.dist(this.player, viaPoint) + ctx.dist(viaPoint, s1g)));
-            finalDuration = duration - viaDuration;
-            return this.player.animate(viaPoint, {
-                duration: viaDuration,
-                onChange: this.canvas.renderAll.bind(this.canvas),
+            return this.recordQuery("mouseover", "state", s);
+        };
+
+        MouselabMDP.prototype.mouseoutState = function (g, s) {
+            ctx.LOG_DEBUG("mouseoutState " + s);
+            if (this.stateLabels && this.stateDisplay === "hover") {
+                g.setLabel("");
+            }
+            return this.recordQuery("mouseout", "state", s);
+        };
+
+        MouselabMDP.prototype.animateMove = function (s1g, reward, via, finalState) {
+            var waypoints, segments, totalDist, i, d, duration;
+            waypoints = [
+                { left: this.player.left, top: this.player.top },
+            ];
+            if (via != null) {
+                waypoints.push(via);
+            }
+            waypoints.push({ left: s1g.left, top: s1g.top });
+            segments = [];
+            totalDist = 0;
+            for (i = 1; i < waypoints.length; i++) {
+                d = ctx.dist(waypoints[i - 1], waypoints[i]);
+                segments.push({
+                    from: waypoints[i - 1],
+                    to: waypoints[i],
+                    dist: d,
+                    accum: totalDist,
+                });
+                totalDist += d;
+            }
+            duration = totalDist * this.ANIMATION_SPEED;
+            return fabric.util.animate({
+                startValue: 0,
+                endValue: totalDist,
+                duration: duration,
+                onChange: (function (_this, _segments) {
+                    return function (traveled) {
+                        var seg, k, segT, pos;
+                        for (k = _segments.length - 1; k >= 0; k--) {
+                            if (traveled >= _segments[k].accum) break;
+                        }
+                        seg = _segments[k];
+                        segT = Math.min((traveled - seg.accum) / seg.dist, 1);
+                        pos = {
+                            left: seg.from.left + (seg.to.left - seg.from.left) * segT,
+                            top: seg.from.top + (seg.to.top - seg.from.top) * segT,
+                        };
+                        _this.player.set(pos);
+                        return _this.canvas.renderAll();
+                    };
+                })(this, segments),
                 onComplete: (function (_this) {
                     return function () {
-                        return _this.player.animate(finalPoint, {
-                            duration: finalDuration,
-                            onChange: _this.canvas.renderAll.bind(_this.canvas),
-                            onComplete: (function (_this) {
-                                return function () {
-                                    _this.addScore(reward);
-                                    return _this.arrive(finalState);
-                                };
-                            })(_this),
-                        });
+                        _this.addScore(reward);
+                        return _this.arrive(finalState);
                     };
                 })(this),
             });
@@ -258,16 +299,16 @@
             ctx.LOG_DEBUG("mouseoverEdge " + s0 + " " + r + " " + s1);
             if (this.edgeLabels && this.edgeDisplay === "hover") {
                 g.setLabel(this.getEdgeLabel(s0, r, s1));
-                return this.recordQuery("mouseover", "edge", s0 + "__" + s1);
             }
+            return this.recordQuery("mouseover", "edge", s0 + "__" + s1);
         };
 
         MouselabMDP.prototype.mouseoutEdge = function (g, s0, r, s1) {
             ctx.LOG_DEBUG("mouseoutEdge " + s0 + " " + r + " " + s1);
             if (this.edgeLabels && this.edgeDisplay === "hover") {
                 g.setLabel("");
-                return this.recordQuery("mouseout", "edge", s0 + "__" + s1);
             }
+            return this.recordQuery("mouseout", "edge", s0 + "__" + s1);
         };
 
         MouselabMDP.prototype.isStochasticEdge = function (edge) {
@@ -386,6 +427,7 @@
             this.canvas = new fabric.Canvas("mouselab-canvas", {
                 selection: false,
                 subTargetCheck: true,
+                targetFindTolerance: 2,
             });
             this.edgeViews = {};
             this.states = {};
@@ -408,32 +450,35 @@
                 actions = ref2[s0];
                 results.push(
                     function () {
-                        var children, probabilities, ref3, results1, splitEdge;
+                        var a, children, firstStochastic, ref3, results1, splitEdge, stochasticActions;
                         results1 = [];
+                        stochasticActions = {};
+                        for (a in actions) {
+                            if (this.isStochasticEdge(actions[a])) {
+                                stochasticActions[a] = actions[a];
+                            }
+                        }
+                        if (Object.keys(stochasticActions).length > 0) {
+                            firstStochastic = Object.keys(stochasticActions)[0];
+                            ref3 = stochasticActions[firstStochastic];
+                            children = ref3.map(function (outcome) {
+                                return this.states[outcome[2]];
+                            }, this);
+                            this.edgeViews[s0] == null ? (this.edgeViews[s0] = {}) : void 0;
+                            splitEdge = new ctx.SplitEdge(this.states[s0], children, {
+                                allActions: stochasticActions,
+                                edgeDisplay: this.edgeDisplay,
+                                SIZE: this.SIZE,
+                            });
+                            splitEdge.attach(this);
+                            for (a in stochasticActions) {
+                                this.edgeViews[s0][a] = splitEdge;
+                            }
+                            results1.push(splitEdge);
+                        }
                         for (a in actions) {
                             ((ref3 = actions[a]), (r = ref3[0]), (s1 = ref3[1]));
-                            if (this.isStochasticEdge(ref3)) {
-                                children = ref3.map(function (outcome) {
-                                    return this.states[outcome[2]];
-                                }, this);
-                                probabilities = ref3.map(function (outcome) {
-                                    return outcome[0];
-                                });
-                                this.edgeViews[s0] == null ? (this.edgeViews[s0] = {}) : void 0;
-                                splitEdge = this.edgeViews[s0][a] = new ctx.SplitEdge(
-                                    this.states[s0],
-                                    children,
-                                    probabilities,
-                                    {
-                                        actionName: a,
-                                        parentActions: actions,
-                                        edgeDisplay: this.edgeDisplay,
-                                        SIZE: this.SIZE,
-                                    },
-                                );
-                                splitEdge.attach(this);
-                                results1.push(splitEdge);
-                            } else {
+                            if (!this.isStochasticEdge(ref3)) {
                                 results1.push(
                                     this.draw(
                                         new ctx.Edge(this.states[s0], r, this.states[s1], {

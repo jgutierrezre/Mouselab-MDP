@@ -40,7 +40,22 @@
                 (y1 = ref5[1]),
                 (x2 = ref5[2]),
                 (y2 = ref5[3]));
-            this.arrow = new ctx.Arrow(x1, y1, x2, y2, c1.radius + spacing, c2.radius + spacing);
+            this.arrow = new ctx.Arrow(
+                x1,
+                y1,
+                x2,
+                y2,
+                c1.radius + spacing,
+                c2.radius + spacing,
+                ctx.CONFIG.DEFAULT_EDGE_COLOR,
+                ctx.CONFIG.EDGE_WIDTH,
+            );
+            this.arrow.set({
+                selectable: false,
+                evented: true,
+                perPixelTargetFind: false,
+                targetFindTolerance: 8,
+            });
             ang = (this.arrow.ang + Math.PI / 2) % (Math.PI * 2);
             if (0.5 * Math.PI <= ang && ang <= 1.5 * Math.PI) {
                 ang += Math.PI;
@@ -52,15 +67,22 @@
                 angle: rotateLabel ? (ang * 180) / Math.PI : 0,
                 fill: ctx.redGreen(label),
                 fontSize: SIZE / 6,
-                textBackgroundColor: "white",
             });
             this.on("mousedown", function () {
                 return mdpInstance.clickEdge(this, c1.name, reward, c2.name);
             });
             this.on("mouseover", function () {
+                if (this.arrow && this.arrow._objects && this.arrow._objects[0]) {
+                    this.arrow._objects[0].set({ strokeWidth: ctx.CONFIG.HOVER_EDGE_WIDTH });
+                    this.arrow.dirty = true;
+                }
                 return mdpInstance.mouseoverEdge(this, c1.name, reward, c2.name);
             });
             this.on("mouseout", function () {
+                if (this.arrow && this.arrow._objects && this.arrow._objects[0]) {
+                    this.arrow._objects[0].set({ strokeWidth: ctx.CONFIG.EDGE_WIDTH });
+                    this.arrow.dirty = true;
+                }
                 return mdpInstance.mouseoutEdge(this, c1.name, reward, c2.name);
             });
             Edge.__super__.constructor.call(this, [this.arrow, this.label]);

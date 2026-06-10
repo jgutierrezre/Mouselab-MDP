@@ -32,8 +32,15 @@
             this.on("mousedown", function () {
                 return mdpInstance.clickState(this, this.name);
             });
+            this.on("mouseover", function () {
+                return mdpInstance.mouseoverState(this, this.name);
+            });
+            this.on("mouseout", function () {
+                return mdpInstance.mouseoutState(this, this.name);
+            });
             State.__super__.constructor.call(this, [this.circle, this.label]);
             this.objectCaching = false;
+            this.perPixelTargetFind = true;
             this.setLabel(conf.label);
         }
 
