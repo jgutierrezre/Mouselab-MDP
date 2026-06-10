@@ -1,5 +1,5 @@
 ###
-experiment.coffee
+session.coffee
 Fred Callaway
 
 Demonstrates the mouselab-mdp jspsych plugin
@@ -32,14 +32,14 @@ loadJson = (file, callback) ->
 
 $(window).on 'load', ->
   loadJson "static/json/trials.json", (trials) ->
-    initializeExperiment trials
+    startSession trials
 
-initializeExperiment = (trials) ->
-  console.log 'INITIALIZE EXPERIMENT'
+startSession = (trials) ->
+  console.log 'START SESSION'
   console.log trials
 
   #  ============================== #
-  #  ========= EXPERIMENT ========= #
+  #  ====== TRIAL DEFINITION ====== #
   #  ============================== #
 
   welcome =
@@ -59,20 +59,20 @@ initializeExperiment = (trials) ->
     leftMessage: -> "Round: #{++i}/#{trials.length}"
     timeline: trials
 
-  experiment_timeline = [
+  timeline = [
     # welcome
     main
   ]
 
 
   # ================================================ #
-  # ========= START AND END THE EXPERIMENT ========= #
+  # ========= START AND END THE SESSION ============ #
   # ================================================ #
 
 
   jsPsych.init
     display_element: $('#jspsych-target')
-    timeline: experiment_timeline
+    timeline: timeline
     # show_progress_bar: true
 
     on_finish: ->
