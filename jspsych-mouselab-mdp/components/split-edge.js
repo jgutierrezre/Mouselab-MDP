@@ -456,6 +456,9 @@
                 for (var k = 0; k < self.labels.length; k++) {
                     self._setLabelVisibility(self.labels[k], k === self.hoveredIndex);
                 }
+                if (!already) {
+                    mdpInstance.addScore(-mdpInstance.edgeClickCost);
+                }
                 mdpInstance.recordQuery(
                     "click",
                     "edge",
