@@ -7,7 +7,9 @@
             trialConfig = jsPsych.pluginAPI.evaluateFunctionParameters(trialConfig);
             trialConfig.display = display_element;
             trialConfig.timing_post_trial = 0;
-            console.log("trialConfig", trialConfig);
+            if (window.MouselabMDPCtx.DEBUG_MODE) {
+                console.log("trialConfig", trialConfig);
+            }
 
             if (!instance) {
                 display_element.empty();

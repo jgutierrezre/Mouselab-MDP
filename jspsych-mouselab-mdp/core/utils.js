@@ -20,9 +20,12 @@
     };
     ctx.hasProp = {}.hasOwnProperty;
 
+    ctx.DEBUG_MODE = false;
+
     ctx.PRINT = function () {
         var args;
         args = 1 <= arguments.length ? ctx.slice.call(arguments, 0) : [];
+        if (!ctx.DEBUG_MODE) return;
         return console.log.apply(console, args);
     };
     ctx.NULL = function () {
