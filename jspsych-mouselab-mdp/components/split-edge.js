@@ -207,7 +207,7 @@
                 var hitDx = childState.left - branchX;
                 var hitDy = childState.top - branchY;
                 var hitLen = Math.sqrt(hitDx * hitDx + hitDy * hitDy);
-                var hitAngle = Math.atan2(hitDy, hitDx) * 180 / Math.PI;
+                var hitAngle = (Math.atan2(hitDy, hitDx) * 180) / Math.PI;
 
                 hitBox = new fabric.Rect({
                     left: branchX,

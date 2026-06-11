@@ -70,7 +70,7 @@
             var hitDx = x2 - x1;
             var hitDy = y2 - y1;
             var hitLen = Math.sqrt(hitDx * hitDx + hitDy * hitDy);
-            var hitAngle = Math.atan2(hitDy, hitDx) * 180 / Math.PI;
+            var hitAngle = (Math.atan2(hitDy, hitDx) * 180) / Math.PI;
 
             this.hitBox = new fabric.Rect({
                 left: x1,
