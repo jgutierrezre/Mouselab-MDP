@@ -9,6 +9,9 @@
             this.allActions = config.allActions || {};
             this.edgeDisplay = config.edgeDisplay != null ? config.edgeDisplay : "hover";
             this.SIZE = config.SIZE || ctx.SIZE;
+            this.edgeLabels = config.edgeLabels;
+            this.actionLabels = config.actionLabels || {};
+            this.actions = config.actions;
             this.parent = c1;
             this.branchPoint = null;
             this.stemStart = null;
@@ -54,12 +57,33 @@
 
         SplitEdge.prototype._buildArrowLabels = function (targetName, midX, midY, mdpInstance) {
             var actName, allOutcomes, j, prob, reward, actColor;
-            var letterText, probText, rewardText, lineHeight;
+            var sublabelText, keyText, probText, rewardText, lineHeight, groupLabel;
             var texts = [];
             var maxLabelWidth = 0;
             var labelY = 0;
             var fontSize = ctx.CONFIG.BRANCH_LABEL_FONT_SIZE;
             lineHeight = fontSize * 1.3;
+
+            groupLabel = this.parent.name;
+            if (this.edgeLabels && this.edgeLabels !== "reward") {
+                var custom = this.edgeLabels[this.parent.name];
+                if (custom != null) groupLabel = custom;
+            }
+            if (groupLabel != null) {
+                var gl = new fabric.Text(groupLabel, {
+                    fontSize: fontSize + 2,
+                    fill: "#222",
+                    fontFamily: "helvetica",
+                    fontWeight: "bold",
+                    originX: "left",
+                    originY: "top",
+                    selectable: false,
+                    evented: false,
+                });
+                gl.objectCaching = false;
+                maxLabelWidth = gl.width + 14;
+                labelY += lineHeight;
+            }
 
             for (actName in this.allActions) {
                 allOutcomes = this.allActions[actName].outcomes;
@@ -68,8 +92,20 @@
                         prob = Math.round(allOutcomes[j].prob * 100);
                         reward = allOutcomes[j].reward;
                         actColor = actionColorForName(actName);
+                        var targetId = allOutcomes[j].target;
 
-                        letterText = new fabric.Text(actName, {
+                        sublabelText = new fabric.Text(targetId, {
+                            fontSize: fontSize,
+                            fill: "#555",
+                            fontFamily: "helvetica",
+                            originX: "left",
+                            originY: "top",
+                            selectable: false,
+                            evented: false,
+                        });
+                        sublabelText.objectCaching = false;
+
+                        keyText = new fabric.Text(actName, {
                             fontSize: fontSize,
                             fill: actColor,
                             fontFamily: "helvetica",
@@ -79,7 +115,7 @@
                             selectable: false,
                             evented: false,
                         });
-                        letterText.objectCaching = false;
+                        keyText.objectCaching = false;
 
                         probText = new fabric.Text(" " + prob + "%", {
                             fontSize: fontSize,
@@ -92,22 +128,27 @@
                         });
                         probText.objectCaching = false;
 
-                        rewardText = new fabric.Text(" $" + reward, {
-                            fontSize: fontSize,
-                            fill: ctx.redGreen(reward),
-                            fontFamily: "helvetica",
-                            originX: "left",
-                            originY: "top",
-                            selectable: false,
-                            evented: false,
-                        });
-                        rewardText.objectCaching = false;
+                        var item = { sublabel: sublabelText, key: keyText, prob: probText, y: labelY };
+                        if (reward != null) {
+                            rewardText = new fabric.Text(" $" + reward, {
+                                fontSize: fontSize,
+                                fill: ctx.redGreen(reward),
+                                fontFamily: "helvetica",
+                                originX: "left",
+                                originY: "top",
+                                selectable: false,
+                                evented: false,
+                            });
+                            rewardText.objectCaching = false;
+                            item.reward = rewardText;
+                        }
 
-                        texts.push({ letter: letterText, prob: probText, reward: rewardText, y: labelY });
-                        maxLabelWidth = Math.max(
-                            maxLabelWidth,
-                            letterText.width + probText.width + rewardText.width + 14,
-                        );
+                        texts.push(item);
+                        var itemWidth = sublabelText.width + keyText.width + probText.width;
+                        if (reward != null) {
+                            itemWidth += rewardText.width;
+                        }
+                        maxLabelWidth = Math.max(maxLabelWidth, itemWidth + 14);
                         labelY += lineHeight;
                     }
                 }
@@ -143,24 +184,39 @@
 
             var result = { rect: bgRect, items: [] };
             var firstLineCenter = midY - (labelY - lineHeight) / 2;
+
+            if (gl) {
+                gl.set({ left: midX - maxLabelWidth / 2 + 7, top: firstLineCenter, originY: "center" });
+                if (this.edgeDisplay !== "always") gl.opacity = 0;
+                result.items.push(gl);
+                mdpInstance.draw(gl);
+                firstLineCenter += lineHeight;
+            }
+
             for (var t = 0; t < texts.length; t++) {
                 var tObj = texts[t];
                 var lx = midX - maxLabelWidth / 2 + 7;
                 var ly = firstLineCenter + t * lineHeight;
-                tObj.letter.set({ left: lx, top: ly, originY: "center" });
-                tObj.prob.set({ left: lx + tObj.letter.width, top: ly, originY: "center" });
-                tObj.reward.set({ left: lx + tObj.letter.width + tObj.prob.width, top: ly, originY: "center" });
-                if (this.edgeDisplay !== "always") {
-                    tObj.letter.opacity = 0;
-                    tObj.prob.opacity = 0;
-                    tObj.reward.opacity = 0;
+                tObj.sublabel.set({ left: lx, top: ly, originY: "center" });
+                tObj.key.set({ left: lx + tObj.sublabel.width, top: ly, originY: "center" });
+                tObj.prob.set({ left: lx + tObj.sublabel.width + tObj.key.width, top: ly, originY: "center" });
+                if (tObj.reward) {
+                    tObj.reward.set({ left: lx + tObj.sublabel.width + tObj.key.width + tObj.prob.width, top: ly, originY: "center" });
                 }
-                mdpInstance.draw(tObj.letter);
+                if (this.edgeDisplay !== "always") {
+                    tObj.sublabel.opacity = 0;
+                    tObj.key.opacity = 0;
+                    tObj.prob.opacity = 0;
+                    if (tObj.reward) tObj.reward.opacity = 0;
+                }
+                mdpInstance.draw(tObj.sublabel);
+                mdpInstance.draw(tObj.key);
                 mdpInstance.draw(tObj.prob);
-                mdpInstance.draw(tObj.reward);
-                result.items.push(tObj.letter);
+                if (tObj.reward) mdpInstance.draw(tObj.reward);
+                result.items.push(tObj.sublabel);
+                result.items.push(tObj.key);
                 result.items.push(tObj.prob);
-                result.items.push(tObj.reward);
+                if (tObj.reward) result.items.push(tObj.reward);
             }
             return result;
         };
@@ -220,20 +276,20 @@
                 mdpInstance.draw(arrow);
                 this.arrows.push(arrow);
 
-                var hitDx = childState.left - branchX;
-                var hitDy = childState.top - branchY;
-                var hitLen = Math.sqrt(hitDx * hitDx + hitDy * hitDy);
-                var hitAngle = (Math.atan2(hitDy, hitDx) * 180) / Math.PI;
+                var angRad = ctx.angle(branchX, branchY, childState.left, childState.top);
+                var hitEnd = ctx.polarMove(childState.left, childState.top, angRad, -(childState.radius + radiusGap));
+                var dx = hitEnd[0] - branchX;
+                var dy = hitEnd[1] - branchY;
 
                 hitBox = new fabric.Rect({
                     left: branchX,
                     top: branchY,
-                    width: hitLen,
+                    width: Math.hypot(dx, dy),
                     height: ctx.CONFIG.EDGE_WIDTH + 15,
                     originX: "left",
                     originY: "center",
-                    angle: hitAngle,
-                    fill: "rgba(0,0,0,0)",
+                    angle: Math.atan2(dy, dx) * 180 / Math.PI,
+                    fill: "rgb(255, 0, 0)",
                     selectable: false,
                     evented: true,
                 });
@@ -272,6 +328,7 @@
         SplitEdge.prototype._attachArrowHover = function (hitBox, index, labelObj, mdpInstance) {
             var self = this;
             hitBox.on("mouseover", function () {
+                if (self.edgeDisplay !== "hover") return;
                 self._highlightLine(self.stemLine, true);
                 for (var k = 0; k < self.arrows.length; k++) {
                     self._highlightLine(self.arrows[k], k === index);
@@ -287,16 +344,37 @@
                 return mdpInstance.canvas.renderAll();
             });
             hitBox.on("mouseout", function () {
+                if (self.edgeDisplay !== "hover") return;
                 self._resetLine(self.stemLine);
                 for (var k = 0; k < self.arrows.length; k++) {
                     self._resetLine(self.arrows[k]);
                 }
-                var always = self.edgeDisplay === "always";
                 for (var k = 0; k < self.labels.length; k++) {
-                    self._setLabelVisibility(self.labels[k], always);
+                    self._setLabelVisibility(self.labels[k], false);
                 }
                 mdpInstance.recordQuery(
                     "mouseout",
+                    "edge",
+                    self.parent.name + "__" + self.children[index].name,
+                );
+                return mdpInstance.canvas.renderAll();
+            });
+            hitBox.on("mousedown", function () {
+                if (self.edgeDisplay !== "click") return;
+                if (self.hoveredIndex != null && self.hoveredIndex !== index) {
+                    for (var k = 0; k < self.labels.length; k++) {
+                        if (k === self.hoveredIndex) {
+                            self._setLabelVisibility(self.labels[k], false);
+                        }
+                    }
+                }
+                var already = self.hoveredIndex === index;
+                self.hoveredIndex = already ? null : index;
+                for (var k = 0; k < self.labels.length; k++) {
+                    self._setLabelVisibility(self.labels[k], k === self.hoveredIndex);
+                }
+                mdpInstance.recordQuery(
+                    "click",
                     "edge",
                     self.parent.name + "__" + self.children[index].name,
                 );

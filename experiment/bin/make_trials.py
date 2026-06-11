@@ -3,20 +3,22 @@
 
 Trial definition schema:
 
-    graph          {state_name: {action_name: edge}}
-                   edge has an explicit 'outcomes' list:
-                     { "outcomes": [ { "prob": 1, "reward": r, "target": "s1" } ] }   -- deterministic
-                     { "outcomes": [ { "prob": 0.75, ... }, { "prob": 0.25, ... } ] }  -- stochastic
-                     {}  (terminal state, no outgoing actions)
+    graph          {node_name: {action_name: edge}}
+                   edge:
+                     { "outcomes": [ { "prob": 1, "reward": r, "target": "n1" } ] }       -- deterministic
+                     { "outcomes": [ { "prob": 0.75, ... }, { "prob": 0.25, ... } ] }      -- stochastic
+                     {}                                                                     -- terminal
 
-    layout         {state_name: (x, y)}       (float grid coords)
-    stateLabels    {state_name: label_string}  (shown on click/hover)
-    stateDisplay   "never" | "hover" | "click" | "always"
+    layout         {node_name: (x, y)}       (float grid coords)
+    nodeLabels     {node_name: label_string}  (shown on click/hover/always)
+    nodeRewards    {node_name: reward}        (0 for most, 1 for target)
+    nodeDisplay    "never" | "hover" | "click" | "always"
+    edgeLabels     "reward" | {sourceName: "group label", "src__tgt": "edge label", ...}
     edgeDisplay    "never" | "hover" | "click" | "always"
     keys           {action_name: keycode}
-    initial        str                        (starting state name)
+    initial        str                        (starting node name)
 
-    See jspsych-mouselab-mdp/core/config.js for the full schema and config-level overrides."""
+    See jspsych-mouselab-mdp/core/config.js for the full schema."""
 
 import json
 import random
@@ -100,66 +102,44 @@ def fancy_trials():
 
 
 def all_trials():
-    graph, layout, labels = build('binary_tree', levels=4)
-    yield {
-        'graph': graph,
-        'layout': layout,
-        'stateLabels': labels,
-        'stateDisplay': 'click',
-        'edgeDisplay': 'hover',
-        'keys': {'A': 65, 'B': 66},
-        'centerMessage': '<b>Binary tree</b><br>Choose A or B',
-        'lowerMessage': 'Press A or B to move through the tree.',
-        'playerImage': 'static/images/plane.png',
-        'playerImageScale': 0.12,
-        'initial': '0'
-    }
+    return debug_trials()
 
-    graph, layout, labels = build('ternary_tree', levels=4)
-    yield {
-        'graph': graph,
-        'layout': layout,
-        'stateLabels': labels,
-        'stateDisplay': 'click',
-        'edgeDisplay': 'hover',
-        'keys': {'A': 65, 'B': 66, 'C': 67},
-        'centerMessage': '<b>Ternary tree</b><br>Choose A, B, or C',
-        'lowerMessage': 'Press A, B, or C to move through the tree.',
-        'playerImage': 'static/images/plane.png',
-        'playerImageScale': 0.12,
-        'SIZE': 100,
-        'initial': '0'
-    }
 
-    graph, layout, labels = build('trellis', depth=3, width=2)
-    yield {
-        'graph': graph,
-        'layout': layout,
-        'stateLabels': labels,
-        'stateDisplay': 'click',
-        'edgeDisplay': 'hover',
-        'keys': {'A': 65, 'B': 66},
-        'centerMessage': '<b>Width-2 Trellis</b><br>Choose A or B',
-        'lowerMessage': 'Press A or B. Paths can converge on the same state.',
-        'playerImage': 'static/images/plane.png',
-        'playerImageScale': 0.12,
-        'initial': '0'
-    }
-
-    graph, layout, labels = build('trellis', depth=3, width=3)
-    yield {
-        'graph': graph,
-        'layout': layout,
-        'stateLabels': labels,
-        'stateDisplay': 'click',
-        'edgeDisplay': 'hover',
-        'keys': {'A': 65, 'B': 66, 'C': 67},
-        'centerMessage': '<b>Width-3 Trellis</b><br>Choose A, B, or C',
-        'lowerMessage': 'Press A, B, or C. Paths can converge on the same state.',
-        'playerImage': 'static/images/plane.png',
-        'playerImageScale': 0.12,
-        'initial': '0'
-    }
+def debug_trials():
+    shapes = [
+        ('binary_tree', {'levels': 4}, 'Binary tree', {'A': 65, 'B': 66}, 'A or B'),
+        ('ternary_tree', {'levels': 4}, 'Ternary tree', {'A': 65, 'B': 66, 'C': 67}, 'A, B, or C'),
+        ('trellis', {'depth': 3, 'width': 2}, 'Trellis w=2', {'A': 65, 'B': 66}, 'A or B'),
+        ('trellis', {'depth': 3, 'width': 3}, 'Trellis w=3', {'A': 65, 'B': 66, 'C': 67}, 'A, B, or C'),
+    ]
+    combos = [
+        # ('never', 'never'),
+        # ('click', 'click'),
+        # ('hover', 'hover'),
+        ('always', 'always'),
+    ]
+    for shape_name, kwargs, title, keys, key_help in shapes:
+        for node_disp, edge_disp in combos:
+            graph, layout, labels, node_rewards = build(shape_name, reward_placement='node', **kwargs)
+            labels = {k: k for k in labels}
+            edge_labels = {s: s for s in graph if graph[s]}
+            action_labels = {a: a for a in keys}
+            yield {
+                'graph': graph,
+                'layout': layout,
+                'nodeLabels': labels,
+                'nodeRewards': node_rewards,
+                'edgeLabels': edge_labels,
+                'actionLabels': action_labels,
+                'nodeDisplay': node_disp,
+                'edgeDisplay': edge_disp,
+                'keys': keys,
+                'centerMessage': f'<b>{title}</b><br>{node_disp} nodes / {edge_disp} edges — choose {key_help}',
+                'lowerMessage': f'Press {key_help} to move.',
+                'playerImage': 'static/images/plane.png',
+                'playerImageScale': 0.12,
+                'initial': '0',
+            }
 
 
 def main():
@@ -267,15 +247,16 @@ class Layouts:
         return graph, layout
 
 
-    def binary_tree(levels=4):
+    def binary_tree(levels=4, reward_placement='none'):
         graph = {}
         layout = {}
         labels = {}
         leaf_rewards = {}
+        leaf_names = []
         names = it.count()
 
         def reward():
-            return random.randint(-9, 10)
+            return 1
 
         def node(level, x, y):
             name = str(next(names))
@@ -283,35 +264,59 @@ class Layouts:
             labels[name] = emoji()
             graph[name] = {}
             if level == levels - 1:
-                leaf_rewards[name] = reward()
+                leaf_names.append(name)
+                leaf_rewards[name] = None
                 return name
             if level < levels - 1:
                 spread = 2 ** (levels - level - 2)
                 upper = node(level + 1, x + 1, y - spread)
                 lower = node(level + 1, x + 1, y + spread)
                 graph[name]['A'] = edge(
-                    (0.75, leaf_rewards[upper] if level == levels - 2 else 0, upper),
-                    (0.25, leaf_rewards[lower] if level == levels - 2 else 0, lower),
+                    (0.75, leaf_rewards.get(upper), upper),
+                    (0.25, leaf_rewards.get(lower), lower),
                 )
                 graph[name]['B'] = edge(
-                    (0.25, leaf_rewards[upper] if level == levels - 2 else 0, upper),
-                    (0.75, leaf_rewards[lower] if level == levels - 2 else 0, lower),
+                    (0.25, leaf_rewards.get(upper), upper),
+                    (0.75, leaf_rewards.get(lower), lower),
                 )
             return name
 
         node(0, 0, 0)
-        return graph, layout, labels
+        if leaf_names:
+            has_node = reward_placement in ('node', 'both')
+            has_edge = reward_placement in ('edge', 'both')
+            if has_node or has_edge:
+                winner = random.choice(leaf_names)
+                rv = reward()
+            if has_node:
+                leaf_rewards[winner] = rv
+            if has_edge:
+                for actions in graph.values():
+                    for edge_obj in actions.values():
+                        for outcome in edge_obj.get('outcomes', []):
+                            if outcome['target'] == winner:
+                                outcome['reward'] = rv
+        for actions in graph.values():
+            for edge_obj in actions.values():
+                for outcome in edge_obj.get('outcomes', []):
+                    if outcome['reward'] is None:
+                        outcome['reward'] = 0
+        for name in graph:
+            if name not in leaf_rewards or leaf_rewards[name] is None:
+                leaf_rewards[name] = 0
+        return graph, layout, labels, leaf_rewards
 
 
-    def ternary_tree(levels=4):
+    def ternary_tree(levels=4, reward_placement='none'):
         graph = {}
         layout = {}
         labels = {}
         leaf_rewards = {}
+        leaf_names = []
         names = it.count()
 
         def reward():
-            return random.randint(-9, 10)
+            return 1
 
         def node(level, x, y):
             name = str(next(names))
@@ -319,16 +324,17 @@ class Layouts:
             labels[name] = emoji()
             graph[name] = {}
             if level == levels - 1:
-                leaf_rewards[name] = reward()
+                leaf_names.append(name)
+                leaf_rewards[name] = None
                 return name
             if level < levels - 1:
                 spread = 2 ** (levels - level - 2)
                 upper = node(level + 1, x + 1, y - spread)
                 middle = node(level + 1, x + 1, y)
                 lower = node(level + 1, x + 1, y + spread)
-                r_u = leaf_rewards[upper] if level == levels - 2 else 0
-                r_m = leaf_rewards[middle] if level == levels - 2 else 0
-                r_l = leaf_rewards[lower] if level == levels - 2 else 0
+                r_u = leaf_rewards.get(upper)
+                r_m = leaf_rewards.get(middle)
+                r_l = leaf_rewards.get(lower)
                 graph[name]['A'] = edge(
                     (0.60, r_u, upper),
                     (0.25, r_m, middle),
@@ -347,7 +353,29 @@ class Layouts:
             return name
 
         node(0, 0, 0)
-        return graph, layout, labels
+        if leaf_names:
+            has_node = reward_placement in ('node', 'both')
+            has_edge = reward_placement in ('edge', 'both')
+            if has_node or has_edge:
+                winner = random.choice(leaf_names)
+                rv = reward()
+            if has_node:
+                leaf_rewards[winner] = rv
+            if has_edge:
+                for actions in graph.values():
+                    for edge_obj in actions.values():
+                        for outcome in edge_obj.get('outcomes', []):
+                            if outcome['target'] == winner:
+                                outcome['reward'] = rv
+        for actions in graph.values():
+            for edge_obj in actions.values():
+                for outcome in edge_obj.get('outcomes', []):
+                    if outcome['reward'] is None:
+                        outcome['reward'] = 0
+        for name in graph:
+            if name not in leaf_rewards or leaf_rewards[name] is None:
+                leaf_rewards[name] = 0
+        return graph, layout, labels, leaf_rewards
 
 
     TRELLIS_PROBS = {
@@ -358,14 +386,15 @@ class Layouts:
             [0.15, 0.25, 0.60]],
     }
 
-    def trellis(depth=3, width=2):
+    def trellis(depth=3, width=2, reward_placement='none'):
         graph = {}
         layout = {}
         labels = {}
         leaf_rewards = {}
+        leaf_names = []
 
         def reward():
-            return random.randint(-9, 10)
+            return 1
 
         action_names = [chr(65 + i) for i in range(width)]
 
@@ -381,14 +410,15 @@ class Layouts:
                 labels[name] = emoji()
                 graph[name] = {}
                 if layer == depth:
-                    leaf_rewards[name] = reward()
+                    leaf_names.append(name)
+                    leaf_rewards[name] = None
 
         probs = Layouts.TRELLIS_PROBS[width]
         for a_idx, a_name in enumerate(action_names):
             outcomes = []
             for t_idx in range(width):
                 target = f'1_{t_idx}'
-                r = leaf_rewards[target] if depth == 1 else 0
+                r = leaf_rewards.get(target) if depth == 1 else None
                 outcomes.append((probs[a_idx][t_idx], r, target))
             graph[root][a_name] = edge(*outcomes)
 
@@ -399,11 +429,26 @@ class Layouts:
                     outcomes = []
                     for t_idx in range(width):
                         target = f'{layer + 1}_{t_idx}'
-                        r = leaf_rewards[target] if layer + 1 == depth else 0
+                        r = leaf_rewards.get(target) if layer + 1 == depth else None
                         outcomes.append((probs[a_idx][t_idx], r, target))
                     graph[src][a_name] = edge(*outcomes)
 
-        return graph, layout, labels
+        if leaf_names:
+            has_node = reward_placement in ('node', 'both')
+            has_edge = reward_placement in ('edge', 'both')
+            if has_node or has_edge:
+                winner = random.choice(leaf_names)
+                rv = reward()
+            if has_node:
+                leaf_rewards[winner] = rv
+            if has_edge:
+                for actions in graph.values():
+                    for edge_obj in actions.values():
+                        for outcome in edge_obj.get('outcomes', []):
+                            if outcome['target'] == winner:
+                                outcome['reward'] = rv
+        return graph, layout, labels, leaf_rewards
+
 
 
     def heart(size):
@@ -457,9 +502,12 @@ def rescale(layout):
 
 def build(kind, **kwargs):
     result = getattr(Layouts, kind)(**kwargs)
+    if len(result) == 4:
+        graph, layout, labels, rewards = result
+        return graph, rescale(layout), labels, rewards
     if len(result) == 3:
         graph, layout, labels = result
-        return graph, rescale(layout), labels
+        return graph, rescale(layout), labels, None
     graph, layout = result
     return graph, rescale(layout)
 

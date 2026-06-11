@@ -26,8 +26,8 @@
     proto.initPlayer = function (img) {
         var left, top;
         ctx.LOG_DEBUG("initPlayer");
-        top = this.states[this.initial].top;
-        left = this.states[this.initial].left;
+        top = this.nodes[this.initial].top;
+        left = this.nodes[this.initial].left;
         var scale = this.playerImageScale != null ? this.playerImageScale : 0.3;
         img.scale(scale);
         img.set("top", top).set("left", left);
@@ -50,16 +50,26 @@
             subTargetCheck: true,
         });
         this.edgeViews = {};
-        this.states = {};
+        this.nodes = {};
 
         for (s in this.layout) {
             location = this.layout[s];
             x = location[0];
             y = location[1];
-            this.states[s] = this.draw(
-                new ctx.State(s, x, y, {
+            var alwaysLabel = "";
+            if (this.nodeDisplay === "always") {
+                var lp = [];
+                if (this.nodeLabels && this.nodeLabels[s] != null) {
+                    lp.push(this.nodeLabels[s]);
+                }
+                var rv = this.nodeRewards[s];
+                lp.push("$" + (rv != null ? rv : 0));
+                alwaysLabel = lp.join("  ");
+            }
+            this.nodes[s] = this.draw(
+                new ctx.Node(s, x, y, {
                     fill: "#bbb",
-                    label: this.stateDisplay === "always" ? this.stateLabels[s] : "",
+                    label: alwaysLabel,
                     SIZE: this.SIZE,
                     mdpInstance: this,
                 }),
@@ -80,13 +90,15 @@
                 var firstAction = Object.keys(stochActions)[0];
                 var firstOutcomes = stochActions[firstAction].outcomes;
                 var children = firstOutcomes.map(function (outcome) {
-                    return this.states[outcome.target];
+                    return this.nodes[outcome.target];
                 }, this);
                 this.edgeViews[s0] == null ? (this.edgeViews[s0] = {}) : void 0;
-                var splitEdge = new ctx.SplitEdge(this.states[s0], children, {
+                var splitEdge = new ctx.SplitEdge(this.nodes[s0], children, {
                     allActions: stochActions,
                     edgeDisplay: this.edgeDisplay,
                     SIZE: this.SIZE,
+                    edgeLabels: this.edgeLabels,
+                    actionLabels: this.actionLabels || {},
                 });
                 splitEdge.attach(this);
                 for (a in stochActions) {
@@ -101,7 +113,7 @@
                     var reward = outcome.reward;
                     var s1 = outcome.target;
                     this.draw(
-                        new ctx.Edge(this.states[s0], reward, this.states[s1], {
+                        new ctx.Edge(this.nodes[s0], reward, this.nodes[s1], {
                             label: this.edgeDisplay === "always"
                                 ? this.getEdgeLabel(s0, reward, s1)
                                 : "",

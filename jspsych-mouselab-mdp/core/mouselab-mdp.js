@@ -16,9 +16,9 @@
             this.mouseoutEdge = bind(this.mouseoutEdge, this);
             this.mouseoverEdge = bind(this.mouseoverEdge, this);
             this.clickEdge = bind(this.clickEdge, this);
-            this.mouseoutState = bind(this.mouseoutState, this);
-            this.mouseoverState = bind(this.mouseoverState, this);
-            this.clickState = bind(this.clickState, this);
+            this.mouseoutNode = bind(this.mouseoutNode, this);
+            this.mouseoverNode = bind(this.mouseoverNode, this);
+            this.clickNode = bind(this.clickNode, this);
             this.handleKey = bind(this.handleKey, this);
 
             var c = config;
@@ -26,9 +26,9 @@
             this.graph = c.graph;
             this.layout = c.layout;
             this.initial = c.initial;
-            this.stateLabels = c.stateLabels != null ? c.stateLabels : null;
-            this.stateDisplay = c.stateDisplay != null ? c.stateDisplay : "never";
-            this.stateClickCost = c.stateClickCost != null ? c.stateClickCost : 0;
+            this.nodeLabels = c.nodeLabels != null ? c.nodeLabels : null;
+            this.nodeDisplay = c.nodeDisplay != null ? c.nodeDisplay : "never";
+            this.nodeClickCost = c.nodeClickCost != null ? c.nodeClickCost : 0;
             this.edgeLabels = c.edgeLabels != null ? c.edgeLabels : "reward";
             this.edgeDisplay = c.edgeDisplay != null ? c.edgeDisplay : "always";
             this.edgeClickCost = c.edgeClickCost != null ? c.edgeClickCost : 0;
@@ -39,14 +39,15 @@
             this.ANIMATION_SPEED = c.ANIMATION_SPEED != null
                 ? c.ANIMATION_SPEED
                 : ctx.CONFIG.ANIMATION_SPEED;
+            this.nodeRewards = c.nodeRewards != null ? c.nodeRewards : {};
 
             if (ctx.CONFIG.DEBUG_SHOW_VALUES) {
-                this.stateDisplay = "always";
+                this.nodeDisplay = "always";
                 this.edgeDisplay = "always";
             }
-            var sm = ctx.CONFIG.STATE_INTERACTION_MODE;
+            var nm = ctx.CONFIG.NODE_INTERACTION_MODE;
             var em = ctx.CONFIG.EDGE_INTERACTION_MODE;
-            if (sm != null) this.stateDisplay = sm;
+            if (nm != null) this.nodeDisplay = nm;
             if (em != null) this.edgeDisplay = em;
 
             var leftMessage = c.leftMessage != null ? c.leftMessage : "Round: 1/1";
@@ -69,15 +70,15 @@
                 transitions: [],
                 queries: {
                     click: {
-                        state: { target: [], time: [] },
+                        node: { target: [], time: [] },
                         edge: { target: [], time: [] },
                     },
                     mouseover: {
-                        state: { target: [], time: [] },
+                        node: { target: [], time: [] },
                         edge: { target: [], time: [] },
                     },
                     mouseout: {
-                        state: { target: [], time: [] },
+                        node: { target: [], time: [] },
                         edge: { target: [], time: [] },
                     },
                 },

@@ -16,10 +16,9 @@
     };
 
     proto.getEdgeLabel = function (s0, r, s1) {
-        if (this.edgeLabels === "reward") {
-            return String(r);
-        }
-        return this.edgeLabels[s0 + "__" + s1];
+        var parts = [s0, s1];
+        if (r != null) parts.push("$" + r);
+        return parts.join("  ");
     };
 
     proto.isStochasticEdge = function (edge) {

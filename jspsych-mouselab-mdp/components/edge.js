@@ -67,19 +67,20 @@
                 fontSize: SIZE / 6,
             });
 
-            var hitDx = x2 - x1;
-            var hitDy = y2 - y1;
-            var hitLen = Math.sqrt(hitDx * hitDx + hitDy * hitDy);
-            var hitAngle = (Math.atan2(hitDy, hitDx) * 180) / Math.PI;
+            var angRad = ctx.angle(x1, y1, x2, y2);
+            var hitStart = ctx.polarMove(x1, y1, angRad, c1.radius + spacing);
+            var hitEnd = ctx.polarMove(x2, y2, angRad, -(c2.radius + spacing));
+            var dx = hitEnd[0] - hitStart[0];
+            var dy = hitEnd[1] - hitStart[1];
 
             this.hitBox = new fabric.Rect({
-                left: x1,
-                top: y1,
-                width: hitLen,
+                left: hitStart[0],
+                top: hitStart[1],
+                width: Math.hypot(dx, dy),
                 height: ctx.CONFIG.EDGE_WIDTH + 4,
                 originX: "left",
                 originY: "center",
-                angle: hitAngle,
+                angle: Math.atan2(dy, dx) * 180 / Math.PI,
                 fill: "rgba(0,0,0,0)",
                 selectable: false,
                 evented: true,
@@ -90,6 +91,7 @@
                 return mdpInstance.clickEdge(self, c1.name, reward, c2.name);
             });
             this.hitBox.on("mouseover", function () {
+                if (mdpInstance.edgeDisplay !== "hover") return;
                 if (self.arrow && self.arrow._objects && self.arrow._objects[0]) {
                     self.arrow._objects[0].set({ strokeWidth: ctx.CONFIG.HOVER_EDGE_WIDTH });
                     self.arrow.dirty = true;
@@ -97,6 +99,7 @@
                 return mdpInstance.mouseoverEdge(self, c1.name, reward, c2.name);
             });
             this.hitBox.on("mouseout", function () {
+                if (mdpInstance.edgeDisplay !== "hover") return;
                 if (self.arrow && self.arrow._objects && self.arrow._objects[0]) {
                     self.arrow._objects[0].set({ strokeWidth: ctx.CONFIG.EDGE_WIDTH });
                     self.arrow.dirty = true;

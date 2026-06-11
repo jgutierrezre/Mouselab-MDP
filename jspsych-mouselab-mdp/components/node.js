@@ -1,9 +1,9 @@
-// State class - represents a node/state on the canvas
+// Node class - represents a node/state on the canvas
 (function (ctx) {
-    ctx.State = (function (superClass) {
-        ctx.extend(State, superClass);
+    ctx.Node = (function (superClass) {
+        ctx.extend(Node, superClass);
 
-        function State(name, left, top, config) {
+        function Node(name, left, top, config) {
             var conf, SIZE, mdpInstance;
             this.name = name;
             if (config == null) {
@@ -24,27 +24,30 @@
             this.circle = new fabric.Circle(conf);
             this.label = new ctx.Text("----------", left, top, {
                 fontSize: SIZE / 6,
-                fill: "#44d",
+                fill: "#444",
             });
             this.radius = this.circle.radius;
             this.left = this.circle.left;
             this.top = this.circle.top;
             this.on("mousedown", function () {
-                return mdpInstance.clickState(this, this.name);
+                if (mdpInstance.nodeDisplay !== "click") return;
+                return mdpInstance.clickNode(this, this.name);
             });
             this.on("mouseover", function () {
-                return mdpInstance.mouseoverState(this, this.name);
+                if (mdpInstance.nodeDisplay !== "hover") return;
+                return mdpInstance.mouseoverNode(this, this.name);
             });
             this.on("mouseout", function () {
-                return mdpInstance.mouseoutState(this, this.name);
+                if (mdpInstance.nodeDisplay !== "hover") return;
+                return mdpInstance.mouseoutNode(this, this.name);
             });
-            State.__super__.constructor.call(this, [this.circle, this.label]);
+            Node.__super__.constructor.call(this, [this.circle, this.label]);
             this.objectCaching = false;
             this.perPixelTargetFind = true;
             this.setLabel(conf.label);
         }
 
-        State.prototype.setLabel = function (txt) {
+        Node.prototype.setLabel = function (txt) {
             if (txt) {
                 this.label.setText("" + txt);
                 this.label.setFill(ctx.redGreen(txt));
@@ -54,6 +57,6 @@
             return (this.dirty = true);
         };
 
-        return State;
+        return Node;
     })(fabric.Group);
 })(window.MouselabMDPCtx);

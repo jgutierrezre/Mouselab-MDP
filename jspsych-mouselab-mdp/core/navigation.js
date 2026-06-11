@@ -33,7 +33,7 @@
             this.canvas.bringToFront(this.player);
         }
         ctx.LOG_DEBUG(s0 + ", " + a + " -> " + reward + ", " + s1);
-        s1g = this.states[s1];
+        s1g = this.nodes[s1];
         return this.animateMove(s1g, reward, edgeView != null ? edgeView.branchPoint : void 0, s1);
     };
 
@@ -125,6 +125,8 @@
         var a, keys;
         ctx.LOG_DEBUG("arrive", s);
         this.data.path.push(s);
+        var nodeReward = this.nodeRewards[s];
+        if (nodeReward != null) this.addScore(nodeReward);
         if (this.graph[s]) {
             keys = function () {
                 var i, len, ref, results;
