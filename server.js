@@ -18,7 +18,7 @@ const mimeTypes = {
     ".svg": "image/svg+xml",
 };
 
-http.createServer((req, res) => {
+const server = http.createServer((req, res) => {
     let urlPath = decodeURIComponent(req.url.split("?")[0]);
     if (urlPath === "/") urlPath = "/index.html";
 
@@ -50,6 +50,14 @@ http.createServer((req, res) => {
             })
             .pipe(res);
     });
-}).listen(PORT, () => {
+});
+
+server.listen(PORT, () => {
     console.log(`http://localhost:${PORT}/`);
+});
+
+process.on("SIGINT", () => {
+    server.close(() => {
+        process.exit(0);
+    });
 });
