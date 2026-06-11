@@ -3,12 +3,12 @@
     var proto = ctx.MouselabMDP.prototype;
 
     proto.handleKey = function (s0, a) {
-        var edgeView, r, ref, s1, s1g, transition;
+        var edgeView, reward, s1, s1g, transition;
         ctx.LOG_DEBUG("handleKey", s0, a);
         this.data.actions.push(a);
         this.data.actionTimes.push(Date.now() - this.initTime);
         transition = this.sampleTransition(this.graph[s0][a]);
-        r = transition.reward;
+        reward = transition.reward;
         s1 = transition.nextState;
         edgeView =
             this.edgeViews != null
@@ -19,7 +19,7 @@
         this.data.transitions.push({
             state: s0,
             action: a,
-            reward: r,
+            reward: reward,
             nextState: s1,
             probability: transition.probability,
         });
@@ -32,47 +32,49 @@
         if (this.player) {
             this.canvas.bringToFront(this.player);
         }
-        ctx.LOG_DEBUG(s0 + ", " + a + " -> " + r + ", " + s1);
+        ctx.LOG_DEBUG(s0 + ", " + a + " -> " + reward + ", " + s1);
         s1g = this.states[s1];
-        return this.animateMove(s1g, r, edgeView != null ? edgeView.branchPoint : void 0, s1);
+        return this.animateMove(s1g, reward, edgeView != null ? edgeView.branchPoint : void 0, s1);
     };
 
     proto.sampleTransition = function (edge) {
-        var outcome, roll, total, weight;
-        if (!this.isStochasticEdge(edge)) {
+        var outcomes = edge.outcomes;
+        if (outcomes.length === 1) {
             return {
-                reward: edge[0],
-                nextState: edge[1],
+                reward: outcomes[0].reward,
+                nextState: outcomes[0].target,
                 probability: 1,
                 outcomeIndex: void 0,
             };
         }
-        roll = Math.random();
-        total = 0;
-        for (weight = 0; weight < edge.length; weight++) {
-            outcome = edge[weight];
-            total += outcome[0];
-            if (roll <= total) {
+        var roll = Math.random();
+        var cumulative = 0;
+        for (var i = 0; i < outcomes.length; i++) {
+            var outcome = outcomes[i];
+            cumulative += outcome.prob;
+            if (roll <= cumulative) {
                 return {
-                    reward: outcome[1],
-                    nextState: outcome[2],
-                    probability: outcome[0],
-                    outcomeIndex: weight,
+                    reward: outcome.reward,
+                    nextState: outcome.target,
+                    probability: outcome.prob,
+                    outcomeIndex: i,
                 };
             }
         }
-        outcome = edge[edge.length - 1];
+        var last = outcomes[outcomes.length - 1];
         return {
-            reward: outcome[1],
-            nextState: outcome[2],
-            probability: outcome[0],
-            outcomeIndex: edge.length - 1,
+            reward: last.reward,
+            nextState: last.target,
+            probability: last.prob,
+            outcomeIndex: outcomes.length - 1,
         };
     };
 
     proto.animateMove = function (s1g, reward, via, finalState) {
         var waypoints, segments, totalDist, i, d, duration;
-        waypoints = [{ left: this.player.left, top: this.player.top }];
+        waypoints = [
+            { left: this.player.left, top: this.player.top },
+        ];
         if (via != null) {
             waypoints.push(via);
         }

@@ -18,12 +18,11 @@
     proto.getEdgeLabel = function (s0, r, s1) {
         if (this.edgeLabels === "reward") {
             return String(r);
-        } else {
-            return this.edgeLabels[s0 + "__" + s1];
         }
+        return this.edgeLabels[s0 + "__" + s1];
     };
 
     proto.isStochasticEdge = function (edge) {
-        return Array.isArray(edge[0]) && typeof edge[0][0] === "number";
+        return edge.outcomes && edge.outcomes.length > 1;
     };
 })(window.MouselabMDPCtx);

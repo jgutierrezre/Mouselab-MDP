@@ -1,9 +1,34 @@
 #!/usr/bin/env python3
-"""Generates trials json for the demo experiment."""
+"""Generates trials json for the demo experiment.
+
+Trial definition schema:
+
+    graph          {state_name: {action_name: edge}}
+                   edge has an explicit 'outcomes' list:
+                     { "outcomes": [ { "prob": 1, "reward": r, "target": "s1" } ] }   -- deterministic
+                     { "outcomes": [ { "prob": 0.75, ... }, { "prob": 0.25, ... } ] }  -- stochastic
+                     {}  (terminal state, no outgoing actions)
+
+    layout         {state_name: (x, y)}       (float grid coords)
+    stateLabels    {state_name: label_string}  (shown on click/hover)
+    stateDisplay   "never" | "hover" | "click" | "always"
+    edgeDisplay    "never" | "hover" | "click" | "always"
+    keys           {action_name: keycode}
+    initial        str                        (starting state name)
+
+    See jspsych-mouselab-mdp/core/config.js for the full schema and config-level overrides."""
 
 import json
 import random
 from pathlib import Path
+
+def edge(*outcomes):
+    """Build an edge dict with explicit named outcomes.
+    Each outcome is a (prob, reward, target) tuple.
+    edge((1, 0, "1"))                    -> deterministic
+    edge((0.75, 5, "1"), (0.25, -3, "2")) -> stochastic
+    """
+    return {'outcomes': [{'prob': p, 'reward': r, 'target': t} for p, r, t in outcomes]}
 
 def emoji():
     return random.choice('😀😃😄😁😆😅😂️😊😇🙂🙃😉😌😍😘😗😙😚😋😜😝😛🤑🤗🤓😎')
@@ -24,9 +49,9 @@ def grid(size):
         graph[name] = {}
         layout[name] = [x, y]
         if y < size:
-            graph[name]['down'] = [reward(), state(x, y+1)]
+            graph[name]['down'] = edge((1, reward(), state(x, y+1)))
         if x < size:
-            graph[name]['right'] = [reward(), state(x+1, y)]
+            graph[name]['right'] = edge((1, reward(), state(x+1, y)))
         return name
 
     state(0, 0)
@@ -207,7 +232,7 @@ class Layouts:
             if d > 0:
                 for direction in direct(prev_dir):
                     x1, y1 = move_xy(x, y, direction, 1)
-                    graph[name][direction] = (r, node(d-1, x1, y1, direction))
+                    graph[name][direction] = edge((1, 0, node(d-1, x1, y1, direction)))
                                             
             return name
         
@@ -234,7 +259,7 @@ class Layouts:
             if d > 0:
                 for direction in BRANCH_DIRS[branch][prev_dir]:
                     x1, y1 = move_xy(x, y, direction, dist(branch, d))
-                    graph[name][direction] = (r, node(d-1, x1, y1, direction))
+                    graph[name][direction] = edge((1, 0, node(d-1, x1, y1, direction)))
                                             
             return name
 
@@ -264,14 +289,14 @@ class Layouts:
                 spread = 2 ** (levels - level - 2)
                 upper = node(level + 1, x + 1, y - spread)
                 lower = node(level + 1, x + 1, y + spread)
-                graph[name]['A'] = [
-                    [0.75, leaf_rewards[upper] if level == levels - 2 else 0, upper],
-                    [0.25, leaf_rewards[lower] if level == levels - 2 else 0, lower],
-                ]
-                graph[name]['B'] = [
-                    [0.25, leaf_rewards[upper] if level == levels - 2 else 0, upper],
-                    [0.75, leaf_rewards[lower] if level == levels - 2 else 0, lower],
-                ]
+                graph[name]['A'] = edge(
+                    (0.75, leaf_rewards[upper] if level == levels - 2 else 0, upper),
+                    (0.25, leaf_rewards[lower] if level == levels - 2 else 0, lower),
+                )
+                graph[name]['B'] = edge(
+                    (0.25, leaf_rewards[upper] if level == levels - 2 else 0, upper),
+                    (0.75, leaf_rewards[lower] if level == levels - 2 else 0, lower),
+                )
             return name
 
         node(0, 0, 0)
@@ -304,21 +329,21 @@ class Layouts:
                 r_u = leaf_rewards[upper] if level == levels - 2 else 0
                 r_m = leaf_rewards[middle] if level == levels - 2 else 0
                 r_l = leaf_rewards[lower] if level == levels - 2 else 0
-                graph[name]['A'] = [
-                    [0.60, r_u, upper],
-                    [0.25, r_m, middle],
-                    [0.15, r_l, lower],
-                ]
-                graph[name]['B'] = [
-                    [0.15, r_u, upper],
-                    [0.60, r_m, middle],
-                    [0.25, r_l, lower],
-                ]
-                graph[name]['C'] = [
-                    [0.25, r_u, upper],
-                    [0.15, r_m, middle],
-                    [0.60, r_l, lower],
-                ]
+                graph[name]['A'] = edge(
+                    (0.60, r_u, upper),
+                    (0.25, r_m, middle),
+                    (0.15, r_l, lower),
+                )
+                graph[name]['B'] = edge(
+                    (0.15, r_u, upper),
+                    (0.60, r_m, middle),
+                    (0.25, r_l, lower),
+                )
+                graph[name]['C'] = edge(
+                    (0.25, r_u, upper),
+                    (0.15, r_m, middle),
+                    (0.60, r_l, lower),
+                )
             return name
 
         node(0, 0, 0)
@@ -364,8 +389,8 @@ class Layouts:
             for t_idx in range(width):
                 target = f'1_{t_idx}'
                 r = leaf_rewards[target] if depth == 1 else 0
-                outcomes.append([probs[a_idx][t_idx], r, target])
-            graph[root][a_name] = outcomes
+                outcomes.append((probs[a_idx][t_idx], r, target))
+            graph[root][a_name] = edge(*outcomes)
 
         for layer in range(1, depth):
             for idx in range(width):
@@ -375,8 +400,8 @@ class Layouts:
                     for t_idx in range(width):
                         target = f'{layer + 1}_{t_idx}'
                         r = leaf_rewards[target] if layer + 1 == depth else 0
-                        outcomes.append([probs[a_idx][t_idx], r, target])
-                    graph[src][a_name] = outcomes
+                        outcomes.append((probs[a_idx][t_idx], r, target))
+                    graph[src][a_name] = edge(*outcomes)
 
         return graph, layout, labels
 
@@ -411,10 +436,10 @@ class Layouts:
         for n, (x, y) in layout.items():
             left = r_layout.get((x - 0.5, y + 1))
             if left:
-                graph[n]['left'] = (0, left)
+                graph[n]['left'] = edge((1, 0, left))
             right = r_layout.get((x + 0.5, y + 1))
             if right:
-                graph[n]['right'] = (0, right)
+                graph[n]['right'] = edge((1, 0, right))
 
         return graph, layout
 

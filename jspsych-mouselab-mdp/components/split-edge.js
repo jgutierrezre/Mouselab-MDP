@@ -53,8 +53,8 @@
         };
 
         SplitEdge.prototype._buildArrowLabels = function (targetName, midX, midY, mdpInstance) {
-            var actName, allOutcomes, j, prob, actColor;
-            var letterText, probText, lineHeight;
+            var actName, allOutcomes, j, prob, reward, actColor;
+            var letterText, probText, rewardText, lineHeight;
             var texts = [];
             var maxLabelWidth = 0;
             var labelY = 0;
@@ -62,10 +62,11 @@
             lineHeight = fontSize * 1.3;
 
             for (actName in this.allActions) {
-                allOutcomes = this.allActions[actName];
+                allOutcomes = this.allActions[actName].outcomes;
                 for (j = 0; j < allOutcomes.length; j++) {
-                    if (allOutcomes[j][2] === targetName) {
-                        prob = Math.round(allOutcomes[j][0] * 100);
+                    if (allOutcomes[j].target === targetName) {
+                        prob = Math.round(allOutcomes[j].prob * 100);
+                        reward = allOutcomes[j].reward;
                         actColor = actionColorForName(actName);
 
                         letterText = new fabric.Text(actName, {
@@ -91,10 +92,21 @@
                         });
                         probText.objectCaching = false;
 
-                        texts.push({ letter: letterText, prob: probText, y: labelY });
+                        rewardText = new fabric.Text(" $" + reward, {
+                            fontSize: fontSize,
+                            fill: ctx.redGreen(reward),
+                            fontFamily: "helvetica",
+                            originX: "left",
+                            originY: "top",
+                            selectable: false,
+                            evented: false,
+                        });
+                        rewardText.objectCaching = false;
+
+                        texts.push({ letter: letterText, prob: probText, reward: rewardText, y: labelY });
                         maxLabelWidth = Math.max(
                             maxLabelWidth,
-                            letterText.width + probText.width + 14,
+                            letterText.width + probText.width + rewardText.width + 14,
                         );
                         labelY += lineHeight;
                     }
@@ -137,14 +149,18 @@
                 var ly = firstLineCenter + t * lineHeight;
                 tObj.letter.set({ left: lx, top: ly, originY: "center" });
                 tObj.prob.set({ left: lx + tObj.letter.width, top: ly, originY: "center" });
+                tObj.reward.set({ left: lx + tObj.letter.width + tObj.prob.width, top: ly, originY: "center" });
                 if (this.edgeDisplay !== "always") {
                     tObj.letter.opacity = 0;
                     tObj.prob.opacity = 0;
+                    tObj.reward.opacity = 0;
                 }
                 mdpInstance.draw(tObj.letter);
                 mdpInstance.draw(tObj.prob);
+                mdpInstance.draw(tObj.reward);
                 result.items.push(tObj.letter);
                 result.items.push(tObj.prob);
+                result.items.push(tObj.reward);
             }
             return result;
         };
