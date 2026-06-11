@@ -1,0 +1,1264 @@
+{
+  "participant_id": "EXAMPLE_001",
+  "experiment_config": {
+    "trellis_depth": 3,
+    "trellis_width": 2,
+    "winning_terminal_index": 0,
+    "win_reward": 10,
+    "lose_reward": -1,
+    "probs": [
+      [
+        0.75,
+        0.25
+      ],
+      [
+        0.25,
+        0.75
+      ]
+    ],
+    "action_names": [
+      "A",
+      "B"
+    ],
+    "optimal_policy": {
+      "0": "A",
+      "1_0": "A",
+      "1_1": "A",
+      "2_0": "A",
+      "2_1": "A"
+    }
+  },
+  "timestamps": {
+    "start": "2026-06-11T20:40:36.211418",
+    "end": "2026-06-11T20:42:12.211418"
+  },
+  "trials": [
+    {
+      "actions": [
+        "A",
+        "A",
+        "A"
+      ],
+      "states_visited": [
+        "0",
+        "1_1",
+        "2_0",
+        "3_0"
+      ],
+      "transitions": [
+        {
+          "from": "0",
+          "action": "A",
+          "to": "1_1",
+          "prob": 0.25,
+          "reward": 0
+        },
+        {
+          "from": "1_1",
+          "action": "A",
+          "to": "2_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "2_0",
+          "action": "A",
+          "to": "3_0",
+          "prob": 0.75,
+          "reward": 10
+        }
+      ],
+      "terminal_state": "3_0",
+      "terminal_reward": 10,
+      "won": true,
+      "reaction_times_ms": [
+        1140,
+        203,
+        1041
+      ],
+      "score": 10,
+      "trial_number": 1,
+      "start_time_ms": 0,
+      "end_time_ms": 2884
+    },
+    {
+      "actions": [
+        "A",
+        "A",
+        "A"
+      ],
+      "states_visited": [
+        "0",
+        "1_0",
+        "2_0",
+        "3_0"
+      ],
+      "transitions": [
+        {
+          "from": "0",
+          "action": "A",
+          "to": "1_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "1_0",
+          "action": "A",
+          "to": "2_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "2_0",
+          "action": "A",
+          "to": "3_0",
+          "prob": 0.75,
+          "reward": 10
+        }
+      ],
+      "terminal_state": "3_0",
+      "terminal_reward": 10,
+      "won": true,
+      "reaction_times_ms": [
+        378,
+        752,
+        586
+      ],
+      "score": 10,
+      "trial_number": 2,
+      "start_time_ms": 3884,
+      "end_time_ms": 6100
+    },
+    {
+      "actions": [
+        "A",
+        "A",
+        "A"
+      ],
+      "states_visited": [
+        "0",
+        "1_0",
+        "2_0",
+        "3_0"
+      ],
+      "transitions": [
+        {
+          "from": "0",
+          "action": "A",
+          "to": "1_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "1_0",
+          "action": "A",
+          "to": "2_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "2_0",
+          "action": "A",
+          "to": "3_0",
+          "prob": 0.75,
+          "reward": 10
+        }
+      ],
+      "terminal_state": "3_0",
+      "terminal_reward": 10,
+      "won": true,
+      "reaction_times_ms": [
+        952,
+        293,
+        721
+      ],
+      "score": 10,
+      "trial_number": 3,
+      "start_time_ms": 7100,
+      "end_time_ms": 9566
+    },
+    {
+      "actions": [
+        "A",
+        "A",
+        "A"
+      ],
+      "states_visited": [
+        "0",
+        "1_0",
+        "2_0",
+        "3_0"
+      ],
+      "transitions": [
+        {
+          "from": "0",
+          "action": "A",
+          "to": "1_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "1_0",
+          "action": "A",
+          "to": "2_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "2_0",
+          "action": "A",
+          "to": "3_0",
+          "prob": 0.75,
+          "reward": 10
+        }
+      ],
+      "terminal_state": "3_0",
+      "terminal_reward": 10,
+      "won": true,
+      "reaction_times_ms": [
+        1238,
+        869,
+        685
+      ],
+      "score": 10,
+      "trial_number": 4,
+      "start_time_ms": 10566,
+      "end_time_ms": 13858
+    },
+    {
+      "actions": [
+        "A",
+        "A",
+        "A"
+      ],
+      "states_visited": [
+        "0",
+        "1_1",
+        "2_1",
+        "3_1"
+      ],
+      "transitions": [
+        {
+          "from": "0",
+          "action": "A",
+          "to": "1_1",
+          "prob": 0.25,
+          "reward": 0
+        },
+        {
+          "from": "1_1",
+          "action": "A",
+          "to": "2_1",
+          "prob": 0.25,
+          "reward": 0
+        },
+        {
+          "from": "2_1",
+          "action": "A",
+          "to": "3_1",
+          "prob": 0.25,
+          "reward": -1
+        }
+      ],
+      "terminal_state": "3_1",
+      "terminal_reward": -1,
+      "won": false,
+      "reaction_times_ms": [
+        454,
+        283,
+        1286
+      ],
+      "score": -1,
+      "trial_number": 5,
+      "start_time_ms": 14858,
+      "end_time_ms": 17381
+    },
+    {
+      "actions": [
+        "A",
+        "A",
+        "A"
+      ],
+      "states_visited": [
+        "0",
+        "1_1",
+        "2_0",
+        "3_0"
+      ],
+      "transitions": [
+        {
+          "from": "0",
+          "action": "A",
+          "to": "1_1",
+          "prob": 0.25,
+          "reward": 0
+        },
+        {
+          "from": "1_1",
+          "action": "A",
+          "to": "2_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "2_0",
+          "action": "A",
+          "to": "3_0",
+          "prob": 0.75,
+          "reward": 10
+        }
+      ],
+      "terminal_state": "3_0",
+      "terminal_reward": 10,
+      "won": true,
+      "reaction_times_ms": [
+        458,
+        568,
+        879
+      ],
+      "score": 10,
+      "trial_number": 6,
+      "start_time_ms": 18381,
+      "end_time_ms": 20786
+    },
+    {
+      "actions": [
+        "A",
+        "A",
+        "A"
+      ],
+      "states_visited": [
+        "0",
+        "1_0",
+        "2_0",
+        "3_0"
+      ],
+      "transitions": [
+        {
+          "from": "0",
+          "action": "A",
+          "to": "1_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "1_0",
+          "action": "A",
+          "to": "2_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "2_0",
+          "action": "A",
+          "to": "3_0",
+          "prob": 0.75,
+          "reward": 10
+        }
+      ],
+      "terminal_state": "3_0",
+      "terminal_reward": 10,
+      "won": true,
+      "reaction_times_ms": [
+        825,
+        569,
+        562
+      ],
+      "score": 10,
+      "trial_number": 7,
+      "start_time_ms": 21786,
+      "end_time_ms": 24242
+    },
+    {
+      "actions": [
+        "A",
+        "A",
+        "A"
+      ],
+      "states_visited": [
+        "0",
+        "1_1",
+        "2_0",
+        "3_0"
+      ],
+      "transitions": [
+        {
+          "from": "0",
+          "action": "A",
+          "to": "1_1",
+          "prob": 0.25,
+          "reward": 0
+        },
+        {
+          "from": "1_1",
+          "action": "A",
+          "to": "2_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "2_0",
+          "action": "A",
+          "to": "3_0",
+          "prob": 0.75,
+          "reward": 10
+        }
+      ],
+      "terminal_state": "3_0",
+      "terminal_reward": 10,
+      "won": true,
+      "reaction_times_ms": [
+        382,
+        973,
+        724
+      ],
+      "score": 10,
+      "trial_number": 8,
+      "start_time_ms": 25242,
+      "end_time_ms": 27821
+    },
+    {
+      "actions": [
+        "A",
+        "A",
+        "A"
+      ],
+      "states_visited": [
+        "0",
+        "1_1",
+        "2_0",
+        "3_0"
+      ],
+      "transitions": [
+        {
+          "from": "0",
+          "action": "A",
+          "to": "1_1",
+          "prob": 0.25,
+          "reward": 0
+        },
+        {
+          "from": "1_1",
+          "action": "A",
+          "to": "2_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "2_0",
+          "action": "A",
+          "to": "3_0",
+          "prob": 0.75,
+          "reward": 10
+        }
+      ],
+      "terminal_state": "3_0",
+      "terminal_reward": 10,
+      "won": true,
+      "reaction_times_ms": [
+        510,
+        205,
+        310
+      ],
+      "score": 10,
+      "trial_number": 9,
+      "start_time_ms": 28821,
+      "end_time_ms": 30346
+    },
+    {
+      "actions": [
+        "A",
+        "A",
+        "A"
+      ],
+      "states_visited": [
+        "0",
+        "1_1",
+        "2_0",
+        "3_1"
+      ],
+      "transitions": [
+        {
+          "from": "0",
+          "action": "A",
+          "to": "1_1",
+          "prob": 0.25,
+          "reward": 0
+        },
+        {
+          "from": "1_1",
+          "action": "A",
+          "to": "2_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "2_0",
+          "action": "A",
+          "to": "3_1",
+          "prob": 0.25,
+          "reward": -1
+        }
+      ],
+      "terminal_state": "3_1",
+      "terminal_reward": -1,
+      "won": false,
+      "reaction_times_ms": [
+        1223,
+        1261,
+        882
+      ],
+      "score": -1,
+      "trial_number": 10,
+      "start_time_ms": 31346,
+      "end_time_ms": 35212
+    },
+    {
+      "actions": [
+        "A",
+        "A",
+        "A"
+      ],
+      "states_visited": [
+        "0",
+        "1_0",
+        "2_0",
+        "3_0"
+      ],
+      "transitions": [
+        {
+          "from": "0",
+          "action": "A",
+          "to": "1_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "1_0",
+          "action": "A",
+          "to": "2_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "2_0",
+          "action": "A",
+          "to": "3_0",
+          "prob": 0.75,
+          "reward": 10
+        }
+      ],
+      "terminal_state": "3_0",
+      "terminal_reward": 10,
+      "won": true,
+      "reaction_times_ms": [
+        842,
+        852,
+        677
+      ],
+      "score": 10,
+      "trial_number": 11,
+      "start_time_ms": 36212,
+      "end_time_ms": 39083
+    },
+    {
+      "actions": [
+        "A",
+        "A",
+        "A"
+      ],
+      "states_visited": [
+        "0",
+        "1_0",
+        "2_0",
+        "3_0"
+      ],
+      "transitions": [
+        {
+          "from": "0",
+          "action": "A",
+          "to": "1_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "1_0",
+          "action": "A",
+          "to": "2_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "2_0",
+          "action": "A",
+          "to": "3_0",
+          "prob": 0.75,
+          "reward": 10
+        }
+      ],
+      "terminal_state": "3_0",
+      "terminal_reward": 10,
+      "won": true,
+      "reaction_times_ms": [
+        1137,
+        1026,
+        1421
+      ],
+      "score": 10,
+      "trial_number": 12,
+      "start_time_ms": 40083,
+      "end_time_ms": 44167
+    },
+    {
+      "actions": [
+        "A",
+        "A",
+        "A"
+      ],
+      "states_visited": [
+        "0",
+        "1_1",
+        "2_0",
+        "3_0"
+      ],
+      "transitions": [
+        {
+          "from": "0",
+          "action": "A",
+          "to": "1_1",
+          "prob": 0.25,
+          "reward": 0
+        },
+        {
+          "from": "1_1",
+          "action": "A",
+          "to": "2_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "2_0",
+          "action": "A",
+          "to": "3_0",
+          "prob": 0.75,
+          "reward": 10
+        }
+      ],
+      "terminal_state": "3_0",
+      "terminal_reward": 10,
+      "won": true,
+      "reaction_times_ms": [
+        1188,
+        1279,
+        468
+      ],
+      "score": 10,
+      "trial_number": 13,
+      "start_time_ms": 45167,
+      "end_time_ms": 48602
+    },
+    {
+      "actions": [
+        "A",
+        "A",
+        "A"
+      ],
+      "states_visited": [
+        "0",
+        "1_1",
+        "2_0",
+        "3_0"
+      ],
+      "transitions": [
+        {
+          "from": "0",
+          "action": "A",
+          "to": "1_1",
+          "prob": 0.25,
+          "reward": 0
+        },
+        {
+          "from": "1_1",
+          "action": "A",
+          "to": "2_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "2_0",
+          "action": "A",
+          "to": "3_0",
+          "prob": 0.75,
+          "reward": 10
+        }
+      ],
+      "terminal_state": "3_0",
+      "terminal_reward": 10,
+      "won": true,
+      "reaction_times_ms": [
+        1006,
+        1365,
+        1439
+      ],
+      "score": 10,
+      "trial_number": 14,
+      "start_time_ms": 49602,
+      "end_time_ms": 53912
+    },
+    {
+      "actions": [
+        "A",
+        "A",
+        "A"
+      ],
+      "states_visited": [
+        "0",
+        "1_0",
+        "2_0",
+        "3_0"
+      ],
+      "transitions": [
+        {
+          "from": "0",
+          "action": "A",
+          "to": "1_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "1_0",
+          "action": "A",
+          "to": "2_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "2_0",
+          "action": "A",
+          "to": "3_0",
+          "prob": 0.75,
+          "reward": 10
+        }
+      ],
+      "terminal_state": "3_0",
+      "terminal_reward": 10,
+      "won": true,
+      "reaction_times_ms": [
+        1140,
+        855,
+        736
+      ],
+      "score": 10,
+      "trial_number": 15,
+      "start_time_ms": 54912,
+      "end_time_ms": 58143
+    },
+    {
+      "actions": [
+        "A",
+        "A",
+        "A"
+      ],
+      "states_visited": [
+        "0",
+        "1_0",
+        "2_1",
+        "3_0"
+      ],
+      "transitions": [
+        {
+          "from": "0",
+          "action": "A",
+          "to": "1_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "1_0",
+          "action": "A",
+          "to": "2_1",
+          "prob": 0.25,
+          "reward": 0
+        },
+        {
+          "from": "2_1",
+          "action": "A",
+          "to": "3_0",
+          "prob": 0.75,
+          "reward": 10
+        }
+      ],
+      "terminal_state": "3_0",
+      "terminal_reward": 10,
+      "won": true,
+      "reaction_times_ms": [
+        433,
+        1315,
+        1058
+      ],
+      "score": 10,
+      "trial_number": 16,
+      "start_time_ms": 59143,
+      "end_time_ms": 62449
+    },
+    {
+      "actions": [
+        "A",
+        "A",
+        "A"
+      ],
+      "states_visited": [
+        "0",
+        "1_0",
+        "2_0",
+        "3_0"
+      ],
+      "transitions": [
+        {
+          "from": "0",
+          "action": "A",
+          "to": "1_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "1_0",
+          "action": "A",
+          "to": "2_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "2_0",
+          "action": "A",
+          "to": "3_0",
+          "prob": 0.75,
+          "reward": 10
+        }
+      ],
+      "terminal_state": "3_0",
+      "terminal_reward": 10,
+      "won": true,
+      "reaction_times_ms": [
+        503,
+        1276,
+        270
+      ],
+      "score": 10,
+      "trial_number": 17,
+      "start_time_ms": 63449,
+      "end_time_ms": 65998
+    },
+    {
+      "actions": [
+        "A",
+        "A",
+        "A"
+      ],
+      "states_visited": [
+        "0",
+        "1_0",
+        "2_0",
+        "3_0"
+      ],
+      "transitions": [
+        {
+          "from": "0",
+          "action": "A",
+          "to": "1_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "1_0",
+          "action": "A",
+          "to": "2_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "2_0",
+          "action": "A",
+          "to": "3_0",
+          "prob": 0.75,
+          "reward": 10
+        }
+      ],
+      "terminal_state": "3_0",
+      "terminal_reward": 10,
+      "won": true,
+      "reaction_times_ms": [
+        393,
+        805,
+        457
+      ],
+      "score": 10,
+      "trial_number": 18,
+      "start_time_ms": 66998,
+      "end_time_ms": 69153
+    },
+    {
+      "actions": [
+        "A",
+        "A",
+        "A"
+      ],
+      "states_visited": [
+        "0",
+        "1_0",
+        "2_0",
+        "3_0"
+      ],
+      "transitions": [
+        {
+          "from": "0",
+          "action": "A",
+          "to": "1_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "1_0",
+          "action": "A",
+          "to": "2_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "2_0",
+          "action": "A",
+          "to": "3_0",
+          "prob": 0.75,
+          "reward": 10
+        }
+      ],
+      "terminal_state": "3_0",
+      "terminal_reward": 10,
+      "won": true,
+      "reaction_times_ms": [
+        772,
+        553,
+        1005
+      ],
+      "score": 10,
+      "trial_number": 19,
+      "start_time_ms": 70153,
+      "end_time_ms": 72983
+    },
+    {
+      "actions": [
+        "A",
+        "A",
+        "A"
+      ],
+      "states_visited": [
+        "0",
+        "1_0",
+        "2_0",
+        "3_1"
+      ],
+      "transitions": [
+        {
+          "from": "0",
+          "action": "A",
+          "to": "1_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "1_0",
+          "action": "A",
+          "to": "2_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "2_0",
+          "action": "A",
+          "to": "3_1",
+          "prob": 0.25,
+          "reward": -1
+        }
+      ],
+      "terminal_state": "3_1",
+      "terminal_reward": -1,
+      "won": false,
+      "reaction_times_ms": [
+        304,
+        774,
+        1173
+      ],
+      "score": -1,
+      "trial_number": 20,
+      "start_time_ms": 73983,
+      "end_time_ms": 76734
+    },
+    {
+      "actions": [
+        "A",
+        "A",
+        "A"
+      ],
+      "states_visited": [
+        "0",
+        "1_0",
+        "2_0",
+        "3_0"
+      ],
+      "transitions": [
+        {
+          "from": "0",
+          "action": "A",
+          "to": "1_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "1_0",
+          "action": "A",
+          "to": "2_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "2_0",
+          "action": "A",
+          "to": "3_0",
+          "prob": 0.75,
+          "reward": 10
+        }
+      ],
+      "terminal_state": "3_0",
+      "terminal_reward": 10,
+      "won": true,
+      "reaction_times_ms": [
+        410,
+        391,
+        1370
+      ],
+      "score": 10,
+      "trial_number": 21,
+      "start_time_ms": 77734,
+      "end_time_ms": 80405
+    },
+    {
+      "actions": [
+        "A",
+        "A",
+        "A"
+      ],
+      "states_visited": [
+        "0",
+        "1_0",
+        "2_0",
+        "3_1"
+      ],
+      "transitions": [
+        {
+          "from": "0",
+          "action": "A",
+          "to": "1_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "1_0",
+          "action": "A",
+          "to": "2_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "2_0",
+          "action": "A",
+          "to": "3_1",
+          "prob": 0.25,
+          "reward": -1
+        }
+      ],
+      "terminal_state": "3_1",
+      "terminal_reward": -1,
+      "won": false,
+      "reaction_times_ms": [
+        947,
+        363,
+        450
+      ],
+      "score": -1,
+      "trial_number": 22,
+      "start_time_ms": 81405,
+      "end_time_ms": 83665
+    },
+    {
+      "actions": [
+        "A",
+        "A",
+        "A"
+      ],
+      "states_visited": [
+        "0",
+        "1_1",
+        "2_1",
+        "3_0"
+      ],
+      "transitions": [
+        {
+          "from": "0",
+          "action": "A",
+          "to": "1_1",
+          "prob": 0.25,
+          "reward": 0
+        },
+        {
+          "from": "1_1",
+          "action": "A",
+          "to": "2_1",
+          "prob": 0.25,
+          "reward": 0
+        },
+        {
+          "from": "2_1",
+          "action": "A",
+          "to": "3_0",
+          "prob": 0.75,
+          "reward": 10
+        }
+      ],
+      "terminal_state": "3_0",
+      "terminal_reward": 10,
+      "won": true,
+      "reaction_times_ms": [
+        1327,
+        1309,
+        211
+      ],
+      "score": 10,
+      "trial_number": 23,
+      "start_time_ms": 84665,
+      "end_time_ms": 88012
+    },
+    {
+      "actions": [
+        "A",
+        "A",
+        "A"
+      ],
+      "states_visited": [
+        "0",
+        "1_0",
+        "2_0",
+        "3_1"
+      ],
+      "transitions": [
+        {
+          "from": "0",
+          "action": "A",
+          "to": "1_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "1_0",
+          "action": "A",
+          "to": "2_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "2_0",
+          "action": "A",
+          "to": "3_1",
+          "prob": 0.25,
+          "reward": -1
+        }
+      ],
+      "terminal_state": "3_1",
+      "terminal_reward": -1,
+      "won": false,
+      "reaction_times_ms": [
+        230,
+        643,
+        611
+      ],
+      "score": -1,
+      "trial_number": 24,
+      "start_time_ms": 89012,
+      "end_time_ms": 90996
+    },
+    {
+      "actions": [
+        "A",
+        "A",
+        "A"
+      ],
+      "states_visited": [
+        "0",
+        "1_0",
+        "2_0",
+        "3_0"
+      ],
+      "transitions": [
+        {
+          "from": "0",
+          "action": "A",
+          "to": "1_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "1_0",
+          "action": "A",
+          "to": "2_0",
+          "prob": 0.75,
+          "reward": 0
+        },
+        {
+          "from": "2_0",
+          "action": "A",
+          "to": "3_0",
+          "prob": 0.75,
+          "reward": 10
+        }
+      ],
+      "terminal_state": "3_0",
+      "terminal_reward": 10,
+      "won": true,
+      "reaction_times_ms": [
+        1107,
+        480,
+        1098
+      ],
+      "score": 10,
+      "trial_number": 25,
+      "start_time_ms": 91996,
+      "end_time_ms": 95181
+    }
+  ],
+  "total_trials_completed": 25,
+  "lock_in": {
+    "strategy": {
+      "step_0": "A",
+      "step_1": "A",
+      "step_2": "A"
+    },
+    "sequence": [
+      "A",
+      "A",
+      "A"
+    ],
+    "timestamp_ms": 96181,
+    "matches_optimal": true
+  },
+  "summary": {
+    "win_rate": 80.0,
+    "trials_to_first_correct": 1,
+    "converged": true,
+    "optimal_policy": {
+      "0": "A",
+      "1_0": "A",
+      "1_1": "A",
+      "2_0": "A",
+      "2_1": "A"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+var TRELLIS_CONFIG = {
+  trellis_depth: 3,
+  trellis_width: 2,
+  winning_terminal_index: 0,
+  win_reward: 1,
+  lose_reward: 0,
+  probs: [[0.75, 0.25], [0.25, 0.75]],
+  action_names: ["A", "B"],
+  keycodes: {"A": 65, "B": 66},
+  player_image: "images/plane.png",
+  player_scale: 0.12,
+  node_display: "never",
+  edge_display: "never",
+  optimal_policy: {"0": "A", "1_0": "A", "1_1": "A", "2_0": "A", "2_1": "A"}
+};

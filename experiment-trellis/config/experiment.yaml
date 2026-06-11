@@ -1,0 +1,30 @@
+experiment:
+  title: "Trellis Navigation Learning"
+  description: >
+    Participants navigate a probabilistic trellis from left to right,
+    choosing A or B at each step. One terminal state is a winning state.
+    The goal is to learn the transition probabilities and converge to
+    the optimal policy that maximizes the chance of winning.
+
+trellis:
+  depth: 3
+  width: 2
+  winning_terminal_index: 0    # "3_0" wins (+10), "3_1" loses (-1)
+  win_reward: 1
+  lose_reward: 0
+  probs:
+    - [0.75, 0.25]   # Action A: 75% to child 0, 25% to child 1
+    - [0.25, 0.75]   # Action B: 25% to child 0, 75% to child 1
+  action_names: ["A", "B"]
+  keycodes: {A: 65, B: 66}
+  optimal_policy: {0: A, 1_0: A, 1_1: A, 2_0: A, 2_1: A}
+
+display:
+  node_display: "never"        # participants learn via trial and error
+  edge_display: "never"
+  player_image: "images/plane.png"
+  player_scale: 0.12
+
+data:
+  storage: "experiment-trellis/data/participants/"
+  format: "json"
