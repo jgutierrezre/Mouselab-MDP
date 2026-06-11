@@ -52,8 +52,7 @@
             );
             this.arrow.set({
                 selectable: false,
-                evented: true,
-                perPixelTargetFind: true,
+                evented: false,
             });
             ang = (this.arrow.ang + Math.PI / 2) % (Math.PI * 2);
             if (0.5 * Math.PI <= ang && ang <= 1.5 * Math.PI) {
@@ -67,26 +66,49 @@
                 fill: ctx.redGreen(label),
                 fontSize: SIZE / 6,
             });
-            this.on("mousedown", function () {
-                return mdpInstance.clickEdge(this, c1.name, reward, c2.name);
+
+            var hitDx = x2 - x1;
+            var hitDy = y2 - y1;
+            var hitLen = Math.sqrt(hitDx * hitDx + hitDy * hitDy);
+            var hitAngle = Math.atan2(hitDy, hitDx) * 180 / Math.PI;
+
+            this.hitBox = new fabric.Rect({
+                left: x1,
+                top: y1,
+                width: hitLen,
+                height: ctx.CONFIG.EDGE_WIDTH + 4,
+                originX: "left",
+                originY: "center",
+                angle: hitAngle,
+                fill: "rgba(0,0,0,0)",
+                selectable: false,
+                evented: true,
             });
-            this.on("mouseover", function () {
-                if (this.arrow && this.arrow._objects && this.arrow._objects[0]) {
-                    this.arrow._objects[0].set({ strokeWidth: ctx.CONFIG.HOVER_EDGE_WIDTH });
-                    this.arrow.dirty = true;
+
+            var self = this;
+            this.hitBox.on("mousedown", function () {
+                return mdpInstance.clickEdge(self, c1.name, reward, c2.name);
+            });
+            this.hitBox.on("mouseover", function () {
+                if (self.arrow && self.arrow._objects && self.arrow._objects[0]) {
+                    self.arrow._objects[0].set({ strokeWidth: ctx.CONFIG.HOVER_EDGE_WIDTH });
+                    self.arrow.dirty = true;
                 }
-                return mdpInstance.mouseoverEdge(this, c1.name, reward, c2.name);
+                return mdpInstance.mouseoverEdge(self, c1.name, reward, c2.name);
             });
-            this.on("mouseout", function () {
-                if (this.arrow && this.arrow._objects && this.arrow._objects[0]) {
-                    this.arrow._objects[0].set({ strokeWidth: ctx.CONFIG.EDGE_WIDTH });
-                    this.arrow.dirty = true;
+            this.hitBox.on("mouseout", function () {
+                if (self.arrow && self.arrow._objects && self.arrow._objects[0]) {
+                    self.arrow._objects[0].set({ strokeWidth: ctx.CONFIG.EDGE_WIDTH });
+                    self.arrow.dirty = true;
                 }
-                return mdpInstance.mouseoutEdge(this, c1.name, reward, c2.name);
+                return mdpInstance.mouseoutEdge(self, c1.name, reward, c2.name);
             });
+
             Edge.__super__.constructor.call(this, [this.arrow, this.label]);
             this.objectCaching = false;
             this.setLabel(label);
+
+            mdpInstance.draw(this.hitBox);
         }
 
         Edge.prototype.setLabel = function (txt) {

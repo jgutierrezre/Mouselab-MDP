@@ -14,6 +14,7 @@
             this.stemStart = null;
             this.stemLine = null;
             this.arrows = [];
+            this.hitBoxes = [];
             this.labels = [];
             this.objects = [];
             this.objectCaching = false;
@@ -150,7 +151,7 @@
 
         SplitEdge.prototype.attach = function (mdpInstance) {
             var avgChildX, avgChildY, branchX, branchY, childState, i;
-            var midX, midY, radiusGap, stemStart, stemStartY, arrow, labelObj;
+            var midX, midY, radiusGap, stemStart, stemStartY, arrow, labelObj, hitBox;
             this.mdpInstance = mdpInstance;
 
             radiusGap = 8;
@@ -197,12 +198,32 @@
                 );
                 arrow.set({
                     selectable: false,
-                    evented: true,
-                    perPixelTargetFind: true,
+                    evented: false,
                 });
                 arrow.objectCaching = false;
                 mdpInstance.draw(arrow);
                 this.arrows.push(arrow);
+
+                var hitDx = childState.left - branchX;
+                var hitDy = childState.top - branchY;
+                var hitLen = Math.sqrt(hitDx * hitDx + hitDy * hitDy);
+                var hitAngle = Math.atan2(hitDy, hitDx) * 180 / Math.PI;
+
+                hitBox = new fabric.Rect({
+                    left: branchX,
+                    top: branchY,
+                    width: hitLen,
+                    height: ctx.CONFIG.EDGE_WIDTH + 15,
+                    originX: "left",
+                    originY: "center",
+                    angle: hitAngle,
+                    fill: "rgba(0,0,0,0)",
+                    selectable: false,
+                    evented: true,
+                });
+                this.hitBoxes.push(hitBox);
+                mdpInstance.draw(hitBox);
+
                 arrowPositions.push({ midX: midX, midY: midY, childName: childState.name });
             }
 
@@ -210,7 +231,7 @@
                 var pos = arrowPositions[i];
                 labelObj = this._buildArrowLabels(pos.childName, pos.midX, pos.midY, mdpInstance);
                 this.labels.push(labelObj);
-                this._attachArrowHover(this.arrows[i], i, labelObj, mdpInstance);
+                this._attachArrowHover(this.hitBoxes[i], i, labelObj, mdpInstance);
             }
 
             return this;
@@ -232,9 +253,9 @@
             }
         };
 
-        SplitEdge.prototype._attachArrowHover = function (arrow, index, labelObj, mdpInstance) {
+        SplitEdge.prototype._attachArrowHover = function (hitBox, index, labelObj, mdpInstance) {
             var self = this;
-            arrow.on("mouseover", function () {
+            hitBox.on("mouseover", function () {
                 self._highlightLine(self.stemLine, true);
                 for (var k = 0; k < self.arrows.length; k++) {
                     self._highlightLine(self.arrows[k], k === index);
@@ -249,7 +270,7 @@
                 );
                 return mdpInstance.canvas.renderAll();
             });
-            arrow.on("mouseout", function () {
+            hitBox.on("mouseout", function () {
                 self._resetLine(self.stemLine);
                 for (var k = 0; k < self.arrows.length; k++) {
                     self._resetLine(self.arrows[k]);
