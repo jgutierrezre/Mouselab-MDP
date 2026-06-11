@@ -25,7 +25,12 @@ const server = http.createServer((req, res) => {
     let filePath;
 
     if (urlPath.startsWith("/jspsych-mouselab-mdp/")) {
-        filePath = path.join(__dirname, urlPath);
+        filePath = path.resolve(path.join(__dirname, urlPath));
+        if (!filePath.startsWith(__dirname)) {
+            res.writeHead(403);
+            res.end();
+            return;
+        }
     } else {
         filePath = path.join(experimentDir, urlPath);
         if (!filePath.startsWith(experimentDir)) {
