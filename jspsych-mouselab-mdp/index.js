@@ -1,14 +1,22 @@
 // Plugin registration - entry point for jsPsych
 (function (ctx) {
+    var instance = null;
+
     var plugin = {
         trial: function (display_element, trialConfig) {
-            var trial;
             trialConfig = jsPsych.pluginAPI.evaluateFunctionParameters(trialConfig);
             trialConfig.display = display_element;
+            trialConfig.timing_post_trial = 0;
             console.log("trialConfig", trialConfig);
-            display_element.empty();
-            trial = new ctx.MouselabMDP(trialConfig);
-            trial.run();
+
+            if (!instance) {
+                display_element.empty();
+                instance = new ctx.MouselabMDP(trialConfig);
+                instance.run();
+            } else {
+                instance.reload(trialConfig);
+            }
+
             if (trialConfig._block) {
                 trialConfig._block.trialCount += 1;
             }

@@ -7,6 +7,7 @@
             this.endTrial = bind(this.endTrial, this);
             this.buildMap = bind(this.buildMap, this);
             this.initPlayer = bind(this.initPlayer, this);
+            this.initDOM = bind(this.initDOM, this);
             this.draw = bind(this.draw, this);
             this.run = bind(this.run, this);
             this.addScore = bind(this.addScore, this);
@@ -23,6 +24,46 @@
 
             var c = config;
             this.display = c.display;
+            this.initConfig(c);
+            this.initDOM(c);
+            ctx.LOG_INFO("new MouselabMDP", this);
+        }
+
+        var proto = MouselabMDP.prototype;
+        proto.initDOM = function (c) {
+            var leftMessage = c.leftMessage != null ? c.leftMessage : "Round: 1/1";
+            var centerMessage = c.centerMessage != null ? c.centerMessage : "&nbsp;";
+            var rightMessage = c.rightMessage != null
+                ? c.rightMessage
+                : "Score: <span id=mouselab-score/>";
+            var lowerMessage = c.lowerMessage != null ? c.lowerMessage : ctx.KEY_DESCRIPTION;
+
+            this.leftMessage = $("<div>", {
+                id: "mouselab-msg-left",
+                class: "mouselab-header",
+                html: leftMessage,
+            }).appendTo(this.display);
+            this.centerMessage = $("<div>", {
+                id: "mouselab-msg-center",
+                class: "mouselab-header",
+                html: centerMessage,
+            }).appendTo(this.display);
+            this.rightMessage = $("<div>", {
+                id: "mouselab-msg-right",
+                class: "mouselab-header",
+                html: rightMessage,
+            }).appendTo(this.display);
+            this.addScore(0);
+            this.canvasElement = $("<canvas>", { id: "mouselab-canvas" })
+                .attr({ width: 500, height: 500 })
+                .appendTo(this.display);
+            this.lowerMessage = $("<div>", {
+                id: "mouselab-msg-bottom",
+                html: lowerMessage || "&nbsp",
+            }).appendTo(this.display);
+        };
+
+        proto.initConfig = function (c) {
             this.graph = c.graph;
             this.layout = c.layout;
             this.initial = c.initial;
@@ -52,13 +93,6 @@
             if (nm != null) this.nodeDisplay = nm;
             if (em != null) this.edgeDisplay = em;
 
-            var leftMessage = c.leftMessage != null ? c.leftMessage : "Round: 1/1";
-            var centerMessage = c.centerMessage != null ? c.centerMessage : "&nbsp;";
-            var rightMessage = c.rightMessage != null
-                ? c.rightMessage
-                : "Score: <span id=mouselab-score/>";
-            var lowerMessage = c.lowerMessage != null ? c.lowerMessage : ctx.KEY_DESCRIPTION;
-
             _.extend(this, c);
             ctx.checkObj(this);
             this.invKeys = _.invert(this.keys);
@@ -85,31 +119,7 @@
                     },
                 },
             };
-            this.leftMessage = $("<div>", {
-                id: "mouselab-msg-left",
-                class: "mouselab-header",
-                html: leftMessage,
-            }).appendTo(this.display);
-            this.centerMessage = $("<div>", {
-                id: "mouselab-msg-center",
-                class: "mouselab-header",
-                html: centerMessage,
-            }).appendTo(this.display);
-            this.rightMessage = $("<div>", {
-                id: "mouselab-msg-right",
-                class: "mouselab-header",
-                html: rightMessage,
-            }).appendTo(this.display);
-            this.addScore(0);
-            this.canvasElement = $("<canvas>", { id: "mouselab-canvas" })
-                .attr({ width: 500, height: 500 })
-                .appendTo(this.display);
-            this.lowerMessage = $("<div>", {
-                id: "mouselab-msg-bottom",
-                html: lowerMessage || "&nbsp",
-            }).appendTo(this.display);
-            ctx.LOG_INFO("new MouselabMDP", this);
-        }
+        };
 
         return MouselabMDP;
     })();

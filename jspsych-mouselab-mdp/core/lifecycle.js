@@ -5,10 +5,22 @@
     proto.run = function () {
         ctx.LOG_DEBUG("run");
         this.buildMap();
+        if (this._cachedPlayerImg && this._cachedPlayerImgUrl === this.playerImage) {
+            var img = new fabric.Image(this._cachedPlayerImg, {
+                left: 0,
+                top: 0,
+            });
+            this.initPlayer(img);
+            this.canvas.renderAll();
+            this.initTime = Date.now();
+            return this.arrive(this.initial);
+        }
         return fabric.Image.fromURL(
             this.playerImage,
             (function (_this) {
                 return function (img) {
+                    _this._cachedPlayerImg = img.getElement();
+                    _this._cachedPlayerImgUrl = _this.playerImage;
                     _this.initPlayer(img);
                     _this.canvas.renderAll();
                     _this.initTime = Date.now();
@@ -45,10 +57,16 @@
             width: gridWidth * this.SIZE,
             height: gridHeight * this.SIZE,
         });
-        this.canvas = new fabric.Canvas("mouselab-canvas", {
-            selection: false,
-            subTargetCheck: true,
-        });
+        if (!this.canvas) {
+            this.canvas = new fabric.Canvas("mouselab-canvas", {
+                selection: false,
+                subTargetCheck: true,
+                renderOnAddRemove: false,
+            });
+        } else {
+            this.canvas.setWidth(gridWidth * this.SIZE);
+            this.canvas.setHeight(gridHeight * this.SIZE);
+        }
         this.edgeViews = {};
         this.nodes = {};
 
@@ -134,6 +152,53 @@
                 node.setLabel(node.initialLabel);
             }
         }
+        this.canvas.renderAll();
+    };
+
+    proto.reset = function () {
+        if (this.canvas) {
+            this.canvas.clear();
+        }
+        if (this.keyListener) {
+            jsPsych.pluginAPI.cancelKeyboardResponse(this.keyListener);
+            this.keyListener = null;
+        }
+        this.edgeViews = {};
+        this.nodes = {};
+        this.player = null;
+        this.complete = false;
+        this.initTime = null;
+        this.pendingTrail = null;
+    };
+
+    proto.reload = function (config) {
+        this.initConfig(config);
+        if ($("#mouselab-canvas").length === 0) {
+            this.initDOM(config);
+            if (this.canvas) {
+                this.canvas.dispose();
+                this.canvas = null;
+            }
+        }
+        var c = config;
+        var leftMessage = c.leftMessage != null ? c.leftMessage : "Round: 1/1";
+        var centerMessage = c.centerMessage != null ? c.centerMessage : "&nbsp;";
+        var rightMessage = c.rightMessage != null
+            ? c.rightMessage
+            : "Score: <span id=mouselab-score/>";
+        var lowerMessage = c.lowerMessage != null ? c.lowerMessage : ctx.KEY_DESCRIPTION;
+        $("#mouselab-msg-left").html(leftMessage);
+        $("#mouselab-msg-center").html(centerMessage);
+        $("#mouselab-msg-right").html(rightMessage);
+        $("#mouselab-msg-bottom").html(lowerMessage);
+        this.leftMessage = $("#mouselab-msg-left");
+        this.centerMessage = $("#mouselab-msg-center");
+        this.rightMessage = $("#mouselab-msg-right");
+        this.lowerMessage = $("#mouselab-msg-bottom");
+        this.canvasElement = $("#mouselab-canvas");
+        this.addScore(0);
+        this.reset();
+        this.run();
     };
 
     proto.endTrial = function () {
