@@ -113,10 +113,10 @@ def debug_trials():
         ('trellis', {'depth': 3, 'width': 3}, 'Trellis w=3', {'A': 65, 'B': 66, 'C': 67}, 'A, B, or C'),
     ]
     combos = [
-        # ('never', 'never'),
-        # ('click', 'click'),
+        ('never', 'never'),
+        ('click', 'click'),
         ('hover', 'hover'),
-        # ('always', 'always'),
+        ('always', 'always'),
     ]
     for shape_name, kwargs, title, keys, key_help in shapes:
         for node_disp, edge_disp in combos:

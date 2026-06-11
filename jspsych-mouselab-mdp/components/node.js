@@ -43,7 +43,7 @@
             });
             this.labelBg.objectCaching = false;
             var fs = SIZE / 6;
-            this.headerText = new ctx.Text("", left, top - lineHeight / 2, {
+            this.label = new ctx.Text("", left, top - lineHeight / 2, {
                 fontSize: fs,
                 fill: "#222",
                 fontWeight: "bold",
@@ -67,7 +67,12 @@
                 if (mdpInstance.nodeDisplay !== "hover") return;
                 return mdpInstance.mouseoutNode(this, this.name);
             });
-            Node.__super__.constructor.call(this, [this.circle, this.labelBg, this.headerText, this.rewardText]);
+            Node.__super__.constructor.call(this, [
+                this.circle,
+                this.labelBg,
+                this.label,
+                this.rewardText,
+            ]);
             this.objectCaching = false;
             this.perPixelTargetFind = true;
             this.setLabel(conf.label);
@@ -77,16 +82,16 @@
             var r = reward != null ? reward : this.reward;
             if (txt) {
                 var parts = txt.split("  ");
-                this.headerText.setText(parts[0] || "");
-                var rewardStr = parts[1] || ("$" + ((r != null ? r : 0)));
+                this.label.setText(parts[0] || "");
+                var rewardStr = parts[1] || "$" + (r != null ? r : 0);
                 this.rewardText.setText(rewardStr);
                 this.rewardText.setFill(r != null ? ctx.redGreen(r) : ctx.redGreen(rewardStr));
                 this.dirty = true;
 
-                var maxW = Math.max(this.headerText.width, this.rewardText.width);
-                var fs = this.headerText.fontSize;
+                var maxW = Math.max(this.label.width, this.rewardText.width);
+                var fs = this.label.fontSize;
                 var lineH = fs * 1.3;
-                var totalH = (this.headerText.text ? lineH : 0) + (this.rewardText.text ? lineH : 0);
+                var totalH = (this.label.text ? lineH : 0) + (this.rewardText.text ? lineH : 0);
 
                 this.labelBg.set({
                     width: maxW + 8,
@@ -96,7 +101,7 @@
                 this.labelBg.dirty = true;
                 this.mdpInstance.canvas.bringToFront(this);
             } else {
-                this.headerText.setText("");
+                this.label.setText("");
                 this.rewardText.setText("");
                 this.labelBg.opacity = 0;
                 this.labelBg.dirty = true;

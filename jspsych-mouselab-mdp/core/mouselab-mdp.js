@@ -33,9 +33,8 @@
         proto.initDOM = function (c) {
             var leftMessage = c.leftMessage != null ? c.leftMessage : "Round: 1/1";
             var centerMessage = c.centerMessage != null ? c.centerMessage : "&nbsp;";
-            var rightMessage = c.rightMessage != null
-                ? c.rightMessage
-                : "Score: <span id=mouselab-score/>";
+            var rightMessage =
+                c.rightMessage != null ? c.rightMessage : "Score: <span id=mouselab-score/>";
             var lowerMessage = c.lowerMessage != null ? c.lowerMessage : ctx.KEY_DESCRIPTION;
 
             this.leftMessage = $("<div>", {
@@ -77,9 +76,8 @@
             this.trialIndex = c.trialIndex != null ? c.trialIndex : ctx.TRIAL_INDEX;
             this.playerImage = c.playerImage != null ? c.playerImage : "static/images/plane.png";
             this.SIZE = c.SIZE != null ? c.SIZE : ctx.SIZE;
-            this.ANIMATION_SPEED = c.ANIMATION_SPEED != null
-                ? c.ANIMATION_SPEED
-                : ctx.CONFIG.ANIMATION_SPEED;
+            this.ANIMATION_SPEED =
+                c.ANIMATION_SPEED != null ? c.ANIMATION_SPEED : ctx.CONFIG.ANIMATION_SPEED;
             this.nodeRewards = c.nodeRewards != null ? c.nodeRewards : {};
             this.groupLabels = c.groupLabels != null ? c.groupLabels : {};
             this.actionLabels = c.actionLabels != null ? c.actionLabels : {};

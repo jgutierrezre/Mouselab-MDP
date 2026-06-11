@@ -74,9 +74,7 @@
     proto.animateMove = function (s1g, reward, via, finalState) {
         var waypoints, segments, totalDist, i, d, duration;
         var trailInfo = null;
-        waypoints = [
-            { left: this.player.left, top: this.player.top },
-        ];
+        waypoints = [{ left: this.player.left, top: this.player.top }];
         if (via != null) {
             waypoints.push(via);
         }
@@ -99,29 +97,33 @@
             var childNode = edgeView.children[pendingTrail.outcomeIndex];
             var nodeGap = edgeView.stemStart.left - edgeView.parent.left - edgeView.parent.radius;
             var ang = ctx.angle(
-                edgeView.branchPoint.left, edgeView.branchPoint.top,
-                childNode.left, childNode.top
+                edgeView.branchPoint.left,
+                edgeView.branchPoint.top,
+                childNode.left,
+                childNode.top,
             );
             var ae = ctx.polarMove(
-                childNode.left, childNode.top, ang,
-                -(childNode.radius + nodeGap + 7.5)
+                childNode.left,
+                childNode.top,
+                ang,
+                -(childNode.radius + nodeGap + 7.5),
             );
             var arrowEnd = { left: ae[0], top: ae[1] };
             var seg0dx = waypoints[1].left - waypoints[0].left;
             var seg0dy = waypoints[1].top - waypoints[0].top;
             var seg0Len = segments[0].dist;
-            var stemProj = (
-                (edgeView.stemStart.left - waypoints[0].left) * seg0dx +
-                (edgeView.stemStart.top - waypoints[0].top) * seg0dy
-            ) / seg0Len;
+            var stemProj =
+                ((edgeView.stemStart.left - waypoints[0].left) * seg0dx +
+                    (edgeView.stemStart.top - waypoints[0].top) * seg0dy) /
+                seg0Len;
             var stemOffset = Math.max(0, Math.min(seg0Len, stemProj));
             var seg1dx = waypoints[2].left - waypoints[1].left;
             var seg1dy = waypoints[2].top - waypoints[1].top;
             var seg1Len = segments[1].dist;
-            var arrowProj = (
-                (arrowEnd.left - waypoints[1].left) * seg1dx +
-                (arrowEnd.top - waypoints[1].top) * seg1dy
-            ) / seg1Len;
+            var arrowProj =
+                ((arrowEnd.left - waypoints[1].left) * seg1dx +
+                    (arrowEnd.top - waypoints[1].top) * seg1dy) /
+                seg1Len;
             var arrowLen = Math.max(0, Math.min(seg1Len, arrowProj));
             var color =
                 ctx.CONFIG.ACTION_COLORS[pendingTrail.actionChar.charCodeAt(0) - 65] ||
@@ -159,17 +161,22 @@
                     if (_trailInfo) {
                         var stemRevealed = Math.max(
                             0,
-                            Math.min(traveled - _trailInfo.stemOffset, _trailInfo.stemLen)
+                            Math.min(traveled - _trailInfo.stemOffset, _trailInfo.stemLen),
                         );
                         var branchRevealed = Math.max(
                             0,
-                            Math.min(traveled - _trailInfo.seg0Dist, _trailInfo.arrowLen)
+                            Math.min(traveled - _trailInfo.seg0Dist, _trailInfo.arrowLen),
                         );
                         if (stemRevealed > 0) {
                             var stemT = stemRevealed / _trailInfo.stemLen;
                             var stemEnd = {
-                                left: _trailInfo.stemStart.left + (_trailInfo.branchPoint.left - _trailInfo.stemStart.left) * stemT,
-                                top: _trailInfo.stemStart.top + (_trailInfo.branchPoint.top - _trailInfo.stemStart.top) * stemT,
+                                left:
+                                    _trailInfo.stemStart.left +
+                                    (_trailInfo.branchPoint.left - _trailInfo.stemStart.left) *
+                                        stemT,
+                                top:
+                                    _trailInfo.stemStart.top +
+                                    (_trailInfo.branchPoint.top - _trailInfo.stemStart.top) * stemT,
                             };
                             var lineOpts = {
                                 stroke: _trailInfo.color,
@@ -180,8 +187,13 @@
                             };
                             if (!_this._trailStemLine) {
                                 _this._trailStemLine = new fabric.Line(
-                                    [_trailInfo.stemStart.left, _trailInfo.stemStart.top, stemEnd.left, stemEnd.top],
-                                    lineOpts
+                                    [
+                                        _trailInfo.stemStart.left,
+                                        _trailInfo.stemStart.top,
+                                        stemEnd.left,
+                                        stemEnd.top,
+                                    ],
+                                    lineOpts,
                                 );
                                 _this.canvas.add(_this._trailStemLine);
                             } else {
@@ -197,19 +209,30 @@
                         if (branchRevealed > 0) {
                             var branchT = branchRevealed / _trailInfo.arrowLen;
                             var branchEnd = {
-                                left: _trailInfo.branchPoint.left + (_trailInfo.arrowEnd.left - _trailInfo.branchPoint.left) * branchT,
-                                top: _trailInfo.branchPoint.top + (_trailInfo.arrowEnd.top - _trailInfo.branchPoint.top) * branchT,
+                                left:
+                                    _trailInfo.branchPoint.left +
+                                    (_trailInfo.arrowEnd.left - _trailInfo.branchPoint.left) *
+                                        branchT,
+                                top:
+                                    _trailInfo.branchPoint.top +
+                                    (_trailInfo.arrowEnd.top - _trailInfo.branchPoint.top) *
+                                        branchT,
                             };
                             if (!_this._trailBranchLine) {
                                 _this._trailBranchLine = new fabric.Line(
-                                    [_trailInfo.branchPoint.left, _trailInfo.branchPoint.top, branchEnd.left, branchEnd.top],
+                                    [
+                                        _trailInfo.branchPoint.left,
+                                        _trailInfo.branchPoint.top,
+                                        branchEnd.left,
+                                        branchEnd.top,
+                                    ],
                                     {
                                         stroke: _trailInfo.color,
                                         strokeWidth: _trailInfo.width,
                                         selectable: false,
                                         evented: false,
                                         strokeLineCap: "round",
-                                    }
+                                    },
                                 );
                                 _this.canvas.add(_this._trailBranchLine);
                             } else {
@@ -254,7 +277,7 @@
             this.pendingTrail.edgeView.paintTrail(
                 this.pendingTrail.outcomeIndex,
                 trailColor,
-                ctx.CONFIG.TRAIL_WIDTH
+                ctx.CONFIG.TRAIL_WIDTH,
             );
             this.pendingTrail = null;
             this.canvas.renderAll();

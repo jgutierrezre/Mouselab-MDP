@@ -33,12 +33,7 @@
         HOVER_EDGE_WIDTH: 6,
         ARROW_HEAD_SIZE: 10,
         BRANCH_LABEL_FONT_SIZE: 12,
-        ACTION_COLORS: [
-            "#2196F3",
-            "#F44336",
-            "#4CAF50",
-            "#FF9800",
-        ],
+        ACTION_COLORS: ["#2196F3", "#F44336", "#4CAF50", "#FF9800"],
         DEFAULT_EDGE_COLOR: "#888",
         TRAIL_COLOR: "#1565C0",
         TRAIL_WIDTH: 5,
@@ -49,4 +44,4 @@
         EDGE_INTERACTION_MODE: null,
         DEBUG_SHOW_VALUES: false,
     };
-})(window.MouselabMDPCtx = window.MouselabMDPCtx || {});
+})((window.MouselabMDPCtx = window.MouselabMDPCtx || {}));

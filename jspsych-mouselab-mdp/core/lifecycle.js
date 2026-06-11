@@ -136,9 +136,10 @@
                         new ctx.Edge(this.nodes[s0], reward, this.nodes[s1], {
                             s0: s0,
                             actionName: a,
-                            label: this.edgeDisplay === "always"
-                                ? this.getEdgeLabel(s0, a, reward)
-                                : "",
+                            label:
+                                this.edgeDisplay === "always"
+                                    ? this.getEdgeLabel(s0, a, reward)
+                                    : "",
                             SIZE: this.SIZE,
                             mdpInstance: this,
                         }),
@@ -183,9 +184,8 @@
         var c = config;
         var leftMessage = c.leftMessage != null ? c.leftMessage : "Round: 1/1";
         var centerMessage = c.centerMessage != null ? c.centerMessage : "&nbsp;";
-        var rightMessage = c.rightMessage != null
-            ? c.rightMessage
-            : "Score: <span id=mouselab-score/>";
+        var rightMessage =
+            c.rightMessage != null ? c.rightMessage : "Score: <span id=mouselab-score/>";
         var lowerMessage = c.lowerMessage != null ? c.lowerMessage : ctx.KEY_DESCRIPTION;
         $("#mouselab-msg-left").html(leftMessage);
         $("#mouselab-msg-center").html(centerMessage);

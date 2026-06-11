@@ -82,7 +82,7 @@
                 height: ctx.CONFIG.EDGE_WIDTH + 4,
                 originX: "left",
                 originY: "center",
-                angle: Math.atan2(dy, dx) * 180 / Math.PI,
+                angle: (Math.atan2(dy, dx) * 180) / Math.PI,
                 fill: "rgba(0,0,0,0)",
                 selectable: false,
                 evented: true,
