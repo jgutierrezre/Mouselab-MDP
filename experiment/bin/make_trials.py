@@ -20,6 +20,7 @@ Trial definition schema:
 
     See jspsych-mouselab-mdp/core/config.js for the full schema."""
 
+import sys
 import json
 import random
 from pathlib import Path
@@ -76,7 +77,7 @@ def grid_trials():
     yield {
         **grid(3),
         'centerMessage': '<b>Clickable states</b>',
-        'edgeDisplay': False,
+        'edgeDisplay': 'never',
         'stateDisplay': 'click',
         'playerImage': 'static/images/spider.png'
     }
@@ -160,7 +161,11 @@ def debug_trials():
             }
 
 
-def main():
+def main(seed=None):
+    if seed is not None:
+        random.seed(seed)
+        np.random.seed(seed)
+        print(f"Seeded RNG with {seed}")
 
     trials = list(all_trials())
     outfile = Path(__file__).resolve().parents[1] / 'static/json/trials.json'
@@ -178,7 +183,7 @@ import os
 import json
 from collections import defaultdict
 
-from toolz import *
+from toolz import take, drop, concat
 
 # ---------- Constructing environments ---------- #
 DIRECTIONS = ('up', 'right', 'down', 'left')
@@ -532,5 +537,6 @@ def build(kind, **kwargs):
 
 
 if __name__ == '__main__':
-    main()
+    seed = int(sys.argv[1]) if len(sys.argv) > 1 else None
+    main(seed=seed)
     # s = Stims().run()
