@@ -53,8 +53,7 @@
             this.arrow.set({
                 selectable: false,
                 evented: true,
-                perPixelTargetFind: false,
-                targetFindTolerance: 8,
+                perPixelTargetFind: true,
             });
             ang = (this.arrow.ang + Math.PI / 2) % (Math.PI * 2);
             if (0.5 * Math.PI <= ang && ang <= 1.5 * Math.PI) {

@@ -53,7 +53,6 @@
         this.canvas = new fabric.Canvas("mouselab-canvas", {
             selection: false,
             subTargetCheck: true,
-            targetFindTolerance: 2,
         });
         this.edgeViews = {};
         this.states = {};

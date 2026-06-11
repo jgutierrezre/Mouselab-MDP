@@ -173,7 +173,7 @@
             this.stemLine = new fabric.Line([stemStart, stemStartY, branchX, branchY], {
                 stroke: ctx.CONFIG.DEFAULT_EDGE_COLOR,
                 selectable: false,
-                evented: true,
+                evented: false,
                 strokeWidth: ctx.CONFIG.STEM_WIDTH,
                 strokeLineCap: "round",
             });
@@ -198,8 +198,7 @@
                 arrow.set({
                     selectable: false,
                     evented: true,
-                    perPixelTargetFind: false,
-                    targetFindTolerance: 3,
+                    perPixelTargetFind: true,
                 });
                 arrow.objectCaching = false;
                 mdpInstance.draw(arrow);
@@ -212,10 +211,6 @@
                 labelObj = this._buildArrowLabels(pos.childName, pos.midX, pos.midY, mdpInstance);
                 this.labels.push(labelObj);
                 this._attachArrowHover(this.arrows[i], i, labelObj, mdpInstance);
-            }
-
-            if (this.children.length > 1) {
-                this._attachStemHover(mdpInstance);
             }
 
             return this;
@@ -268,33 +263,6 @@
                     "edge",
                     self.parent.name + "__" + self.children[index].name,
                 );
-                return mdpInstance.canvas.renderAll();
-            });
-        };
-
-        SplitEdge.prototype._attachStemHover = function (mdpInstance) {
-            var self = this;
-            this.stemLine.on("mouseover", function () {
-                self._highlightLine(self.stemLine, true);
-                for (var k = 0; k < self.arrows.length; k++) {
-                    self._highlightLine(self.arrows[k], true);
-                }
-                for (var k = 0; k < self.labels.length; k++) {
-                    self._setLabelVisibility(self.labels[k], true);
-                }
-                mdpInstance.recordQuery("mouseover", "edge", self.parent.name + "__stem");
-                return mdpInstance.canvas.renderAll();
-            });
-            this.stemLine.on("mouseout", function () {
-                self._resetLine(self.stemLine);
-                for (var k = 0; k < self.arrows.length; k++) {
-                    self._resetLine(self.arrows[k]);
-                }
-                var always = self.edgeDisplay === "always";
-                for (var k = 0; k < self.labels.length; k++) {
-                    self._setLabelVisibility(self.labels[k], always);
-                }
-                mdpInstance.recordQuery("mouseout", "edge", self.parent.name + "__stem");
                 return mdpInstance.canvas.renderAll();
             });
         };
