@@ -30,6 +30,8 @@
             }
             SIZE = config.SIZE || ctx.SIZE;
             mdpInstance = config.mdpInstance;
+            this.s0 = config.s0;
+            this.actionName = config.actionName;
             ((spacing = (ref = config.spacing) != null ? ref : 8),
                 (adjX = (ref1 = config.adjX) != null ? ref1 : 0),
                 (adjY = (ref2 = config.adjY) != null ? ref2 : 0),
@@ -88,7 +90,7 @@
 
             var self = this;
             this.hitBox.on("mousedown", function () {
-                return mdpInstance.clickEdge(self, c1.name, reward, c2.name);
+                return mdpInstance.clickEdge(self, self.s0, self.actionName, reward);
             });
             this.hitBox.on("mouseover", function () {
                 if (mdpInstance.edgeDisplay !== "hover") return;
@@ -96,7 +98,7 @@
                     self.arrow._objects[0].set({ strokeWidth: ctx.CONFIG.HOVER_EDGE_WIDTH });
                     self.arrow.dirty = true;
                 }
-                return mdpInstance.mouseoverEdge(self, c1.name, reward, c2.name);
+                return mdpInstance.mouseoverEdge(self, self.s0, self.actionName, reward);
             });
             this.hitBox.on("mouseout", function () {
                 if (mdpInstance.edgeDisplay !== "hover") return;
@@ -104,7 +106,7 @@
                     self.arrow._objects[0].set({ strokeWidth: ctx.CONFIG.EDGE_WIDTH });
                     self.arrow.dirty = true;
                 }
-                return mdpInstance.mouseoutEdge(self, c1.name, reward, c2.name);
+                return mdpInstance.mouseoutEdge(self, self.s0, self.actionName, reward);
             });
 
             Edge.__super__.constructor.call(this, [this.arrow, this.label]);

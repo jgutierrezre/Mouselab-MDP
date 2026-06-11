@@ -115,20 +115,38 @@ def debug_trials():
     combos = [
         # ('never', 'never'),
         # ('click', 'click'),
-        # ('hover', 'hover'),
-        ('always', 'always'),
+        ('hover', 'hover'),
+        # ('always', 'always'),
     ]
     for shape_name, kwargs, title, keys, key_help in shapes:
         for node_disp, edge_disp in combos:
             graph, layout, labels, node_rewards = build(shape_name, reward_placement='node', **kwargs)
-            labels = {k: k for k in labels}
-            edge_labels = {s: s for s in graph if graph[s]}
-            action_labels = {a: a for a in keys}
+            labels = {k: f"node_{k}" for k in labels}
+            group_labels = {}
+            edge_labels = {}
+            action_labels = {}
+            group_idx = 0
+            for s, actions in graph.items():
+                if actions:
+                    group_labels[s] = f"group_{group_idx}"
+                    group_idx += 1
+                first_action = next(iter(actions)) if actions else None
+                stoch_idx = 0
+                if first_action and isinstance(actions[first_action], dict) and len(actions[first_action].get('outcomes', [])) > 1:
+                    for outcome in actions[first_action]['outcomes']:
+                        eid = f"{s}_{stoch_idx}"
+                        edge_labels[eid] = f"edge_{stoch_idx}"
+                        for a in actions:
+                            action_labels[f"{eid}_{a}"] = f"action_{a}_edge_{stoch_idx}"
+                        stoch_idx += 1
+                for a in actions:
+                    edge_labels[f"{s}_{a}"] = f"edge_{s}_{a}"
             yield {
                 'graph': graph,
                 'layout': layout,
                 'nodeLabels': labels,
                 'nodeRewards': node_rewards,
+                'groupLabels': group_labels,
                 'edgeLabels': edge_labels,
                 'actionLabels': action_labels,
                 'nodeDisplay': node_disp,

@@ -57,12 +57,12 @@
             x = location[0];
             y = location[1];
             var alwaysLabel = "";
+            var rv = this.nodeRewards[s];
             if (this.nodeDisplay === "always") {
                 var lp = [];
                 if (this.nodeLabels && this.nodeLabels[s] != null) {
                     lp.push(this.nodeLabels[s]);
                 }
-                var rv = this.nodeRewards[s];
                 lp.push("$" + (rv != null ? rv : 0));
                 alwaysLabel = lp.join("  ");
             }
@@ -70,6 +70,7 @@
                 new ctx.Node(s, x, y, {
                     fill: "#bbb",
                     label: alwaysLabel,
+                    reward: rv,
                     SIZE: this.SIZE,
                     mdpInstance: this,
                 }),
@@ -98,7 +99,8 @@
                     edgeDisplay: this.edgeDisplay,
                     SIZE: this.SIZE,
                     edgeLabels: this.edgeLabels,
-                    actionLabels: this.actionLabels || {},
+                    groupLabels: this.groupLabels,
+                    actionLabels: this.actionLabels,
                 });
                 splitEdge.attach(this);
                 for (a in stochActions) {
@@ -114,14 +116,22 @@
                     var s1 = outcome.target;
                     this.draw(
                         new ctx.Edge(this.nodes[s0], reward, this.nodes[s1], {
+                            s0: s0,
+                            actionName: a,
                             label: this.edgeDisplay === "always"
-                                ? this.getEdgeLabel(s0, reward, s1)
+                                ? this.getEdgeLabel(s0, a, reward)
                                 : "",
                             SIZE: this.SIZE,
                             mdpInstance: this,
                         }),
                     );
                 }
+            }
+        }
+        for (s in this.nodes) {
+            var node = this.nodes[s];
+            if (node.initialLabel) {
+                node.setLabel(node.initialLabel);
             }
         }
     };

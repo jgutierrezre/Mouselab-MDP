@@ -4,15 +4,18 @@
         ctx.extend(Node, superClass);
 
         function Node(name, left, top, config) {
-            var conf, SIZE, mdpInstance;
+            var conf, SIZE, mdpInstance, lineHeight;
             this.name = name;
             if (config == null) {
                 config = {};
             }
             SIZE = config.SIZE || ctx.SIZE;
             mdpInstance = config.mdpInstance;
+            this.mdpInstance = mdpInstance;
+            this.reward = config.reward;
             left = (left + 0.5) * SIZE;
             top = (top + 0.5) * SIZE;
+            lineHeight = SIZE / 5;
             conf = {
                 left: left,
                 top: top,
@@ -22,9 +25,32 @@
             };
             _.extend(conf, config);
             this.circle = new fabric.Circle(conf);
-            this.label = new ctx.Text("----------", left, top, {
-                fontSize: SIZE / 6,
-                fill: "#444",
+            this.labelBg = new fabric.Rect({
+                left: left,
+                top: top,
+                width: 0,
+                height: 0,
+                rx: 4,
+                ry: 4,
+                fill: "white",
+                stroke: "#444",
+                strokeWidth: 1,
+                selectable: false,
+                evented: false,
+                originX: "center",
+                originY: "center",
+                opacity: 0,
+            });
+            this.labelBg.objectCaching = false;
+            var fs = SIZE / 6;
+            this.headerText = new ctx.Text("", left, top - lineHeight / 2, {
+                fontSize: fs,
+                fill: "#222",
+                fontWeight: "bold",
+            });
+            this.rewardText = new ctx.Text("", left, top + lineHeight / 2, {
+                fontSize: fs,
+                fill: "#888",
             });
             this.radius = this.circle.radius;
             this.left = this.circle.left;
@@ -41,20 +67,42 @@
                 if (mdpInstance.nodeDisplay !== "hover") return;
                 return mdpInstance.mouseoutNode(this, this.name);
             });
-            Node.__super__.constructor.call(this, [this.circle, this.label]);
+            Node.__super__.constructor.call(this, [this.circle, this.labelBg, this.headerText, this.rewardText]);
             this.objectCaching = false;
             this.perPixelTargetFind = true;
             this.setLabel(conf.label);
         }
 
-        Node.prototype.setLabel = function (txt) {
+        Node.prototype.setLabel = function (txt, reward) {
+            var r = reward != null ? reward : this.reward;
             if (txt) {
-                this.label.setText("" + txt);
-                this.label.setFill(ctx.redGreen(txt));
+                var parts = txt.split("  ");
+                this.headerText.setText(parts[0] || "");
+                var rewardStr = parts[1] || ("$" + ((r != null ? r : 0)));
+                this.rewardText.setText(rewardStr);
+                this.rewardText.setFill(r != null ? ctx.redGreen(r) : ctx.redGreen(rewardStr));
+                this.dirty = true;
+
+                var maxW = Math.max(this.headerText.width, this.rewardText.width);
+                var fs = this.headerText.fontSize;
+                var lineH = fs * 1.3;
+                var totalH = (this.headerText.text ? lineH : 0) + (this.rewardText.text ? lineH : 0);
+
+                this.labelBg.set({
+                    width: maxW + 8,
+                    height: totalH + 4,
+                });
+                this.labelBg.opacity = 1;
+                this.labelBg.dirty = true;
+                this.mdpInstance.canvas.bringToFront(this);
             } else {
-                this.label.setText("");
+                this.headerText.setText("");
+                this.rewardText.setText("");
+                this.labelBg.opacity = 0;
+                this.labelBg.dirty = true;
+                this.dirty = true;
             }
-            return (this.dirty = true);
+            return this;
         };
 
         return Node;

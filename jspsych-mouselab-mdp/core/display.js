@@ -12,7 +12,7 @@
             }
             var r = this.nodeRewards[s];
             parts.push("$" + (r != null ? r : 0));
-            g.setLabel(parts.join("  "));
+            g.setLabel(parts.join("  "), r);
             return this.recordQuery("click", "node", s);
         }
     };
@@ -26,7 +26,7 @@
             }
             var r = this.nodeRewards[s];
             parts.push("$" + (r != null ? r : 0));
-            g.setLabel(parts.join("  "));
+            g.setLabel(parts.join("  "), r);
         }
         return this.recordQuery("mouseover", "node", s);
     };
@@ -35,32 +35,33 @@
         ctx.LOG_DEBUG("mouseoutNode " + s);
         if (this.nodeDisplay === "hover") {
             g.setLabel("");
+            if (this.player) this.canvas.bringToFront(this.player);
         }
         return this.recordQuery("mouseout", "node", s);
     };
 
-    proto.clickEdge = function (g, s0, r, s1) {
-        ctx.LOG_DEBUG("clickEdge " + s0 + " " + r + " " + s1);
+    proto.clickEdge = function (g, s0, actionName, r) {
+        ctx.LOG_DEBUG("clickEdge " + s0 + " " + actionName + " " + r);
         if (this.edgeDisplay === "click" && !g.label.text) {
             this.addScore(-this.edgeClickCost);
-            g.setLabel(this.getEdgeLabel(s0, r, s1));
-            return this.recordQuery("click", "edge", s0 + "__" + s1);
+            g.setLabel(this.getEdgeLabel(s0, actionName, r));
+            return this.recordQuery("click", "edge", s0 + "__" + actionName);
         }
     };
 
-    proto.mouseoverEdge = function (g, s0, r, s1) {
-        ctx.LOG_DEBUG("mouseoverEdge " + s0 + " " + r + " " + s1);
+    proto.mouseoverEdge = function (g, s0, actionName, r) {
+        ctx.LOG_DEBUG("mouseoverEdge " + s0 + " " + actionName + " " + r);
         if (this.edgeDisplay === "hover") {
-            g.setLabel(this.getEdgeLabel(s0, r, s1));
+            g.setLabel(this.getEdgeLabel(s0, actionName, r));
         }
-        return this.recordQuery("mouseover", "edge", s0 + "__" + s1);
+        return this.recordQuery("mouseover", "edge", s0 + "__" + actionName);
     };
 
-    proto.mouseoutEdge = function (g, s0, r, s1) {
-        ctx.LOG_DEBUG("mouseoutEdge " + s0 + " " + r + " " + s1);
+    proto.mouseoutEdge = function (g, s0, actionName, r) {
+        ctx.LOG_DEBUG("mouseoutEdge " + s0 + " " + actionName + " " + r);
         if (this.edgeDisplay === "hover") {
             g.setLabel("");
         }
-        return this.recordQuery("mouseout", "edge", s0 + "__" + s1);
+        return this.recordQuery("mouseout", "edge", s0 + "__" + actionName);
     };
 })(window.MouselabMDPCtx);

@@ -40,6 +40,8 @@
                 ? c.ANIMATION_SPEED
                 : ctx.CONFIG.ANIMATION_SPEED;
             this.nodeRewards = c.nodeRewards != null ? c.nodeRewards : {};
+            this.groupLabels = c.groupLabels != null ? c.groupLabels : {};
+            this.actionLabels = c.actionLabels != null ? c.actionLabels : {};
 
             if (ctx.CONFIG.DEBUG_SHOW_VALUES) {
                 this.nodeDisplay = "always";

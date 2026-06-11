@@ -15,8 +15,10 @@
         return this.data.queries[queryType][targetType].time.push(Date.now() - this.initTime);
     };
 
-    proto.getEdgeLabel = function (s0, r, s1) {
-        var parts = [s0, s1];
+    proto.getEdgeLabel = function (s0, actionName, r) {
+        var eid = s0 + "_" + actionName;
+        var edgeLabel = (this.edgeLabels && this.edgeLabels[eid]) || eid;
+        var parts = [edgeLabel, actionName];
         if (r != null) parts.push("$" + r);
         return parts.join("  ");
     };

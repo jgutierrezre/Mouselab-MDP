@@ -10,6 +10,7 @@
             this.edgeDisplay = config.edgeDisplay != null ? config.edgeDisplay : "hover";
             this.SIZE = config.SIZE || ctx.SIZE;
             this.edgeLabels = config.edgeLabels;
+            this.groupLabels = config.groupLabels || {};
             this.actionLabels = config.actionLabels || {};
             this.actions = config.actions;
             this.parent = c1;
@@ -55,20 +56,18 @@
             }
         };
 
-        SplitEdge.prototype._buildArrowLabels = function (targetName, midX, midY, mdpInstance) {
-            var actName, allOutcomes, j, prob, reward, actColor;
-            var sublabelText, keyText, probText, rewardText, lineHeight, groupLabel;
+        SplitEdge.prototype._buildArrowLabels = function (targetName, midX, midY, mdpInstance, edgeIdx) {
+            var actionName, allOutcomes, j, prob, reward, actColor;
+            var edgeHeaderText, actionLabelText, keyText, probText, rewardText, lineHeight, groupLabel;
             var texts = [];
             var maxLabelWidth = 0;
             var labelY = 0;
             var fontSize = ctx.CONFIG.BRANCH_LABEL_FONT_SIZE;
             lineHeight = fontSize * 1.3;
+            var pad = 6;
+            var indent = 10;
 
-            groupLabel = this.parent.name;
-            if (this.edgeLabels && this.edgeLabels !== "reward") {
-                var custom = this.edgeLabels[this.parent.name];
-                if (custom != null) groupLabel = custom;
-            }
+            groupLabel = this.groupLabels[this.parent.name] || this.parent.name;
             if (groupLabel != null) {
                 var gl = new fabric.Text(groupLabel, {
                     fontSize: fontSize + 2,
@@ -85,27 +84,46 @@
                 labelY += lineHeight;
             }
 
-            for (actName in this.allActions) {
-                allOutcomes = this.allActions[actName].outcomes;
+            var eid = this.parent.name + "_" + edgeIdx;
+            var showEdgeLabel = (this.edgeLabels && this.edgeLabels[eid]) || ("edge_" + edgeIdx);
+            edgeHeaderText = new fabric.Text(showEdgeLabel, {
+                fontSize: fontSize,
+                fill: "#555",
+                fontFamily: "helvetica",
+                fontWeight: "bold",
+                originX: "left",
+                originY: "top",
+                selectable: false,
+                evented: false,
+            });
+            edgeHeaderText.objectCaching = false;
+            texts.push({ type: "edge", edgeHeader: edgeHeaderText, y: labelY });
+            maxLabelWidth = Math.max(maxLabelWidth, edgeHeaderText.width + 14);
+            labelY += lineHeight;
+
+            for (actionName in this.allActions) {
+                allOutcomes = this.allActions[actionName].outcomes;
                 for (j = 0; j < allOutcomes.length; j++) {
                     if (allOutcomes[j].target === targetName) {
                         prob = Math.round(allOutcomes[j].prob * 100);
                         reward = allOutcomes[j].reward;
-                        actColor = actionColorForName(actName);
-                        var targetId = allOutcomes[j].target;
+                        actColor = actionColorForName(actionName);
 
-                        sublabelText = new fabric.Text(targetId, {
+                        var actionEid = eid + "_" + actionName;
+                        var actionLabel = (this.actionLabels && this.actionLabels[actionEid]) || ("action_" + actionName + "_edge_" + edgeIdx);
+
+                        actionLabelText = new fabric.Text(actionLabel, {
                             fontSize: fontSize,
-                            fill: "#555",
+                            fill: "#333",
                             fontFamily: "helvetica",
                             originX: "left",
                             originY: "top",
                             selectable: false,
                             evented: false,
                         });
-                        sublabelText.objectCaching = false;
+                        actionLabelText.objectCaching = false;
 
-                        keyText = new fabric.Text(actName, {
+                        keyText = new fabric.Text(actionName, {
                             fontSize: fontSize,
                             fill: actColor,
                             fontFamily: "helvetica",
@@ -128,7 +146,8 @@
                         });
                         probText.objectCaching = false;
 
-                        var item = { sublabel: sublabelText, key: keyText, prob: probText, y: labelY };
+                        var lineWidth = indent + actionLabelText.width + pad + keyText.width + pad + probText.width;
+                        var actionItem = { type: "line", actionLabel: actionLabelText, key: keyText, prob: probText, y: labelY };
                         if (reward != null) {
                             rewardText = new fabric.Text(" $" + reward, {
                                 fontSize: fontSize,
@@ -140,15 +159,11 @@
                                 evented: false,
                             });
                             rewardText.objectCaching = false;
-                            item.reward = rewardText;
+                            actionItem.reward = rewardText;
+                            lineWidth += pad + rewardText.width;
                         }
-
-                        texts.push(item);
-                        var itemWidth = sublabelText.width + keyText.width + probText.width;
-                        if (reward != null) {
-                            itemWidth += rewardText.width;
-                        }
-                        maxLabelWidth = Math.max(maxLabelWidth, itemWidth + 14);
+                        texts.push(actionItem);
+                        maxLabelWidth = Math.max(maxLabelWidth, lineWidth + 14);
                         labelY += lineHeight;
                     }
                 }
@@ -197,26 +212,34 @@
                 var tObj = texts[t];
                 var lx = midX - maxLabelWidth / 2 + 7;
                 var ly = firstLineCenter + t * lineHeight;
-                tObj.sublabel.set({ left: lx, top: ly, originY: "center" });
-                tObj.key.set({ left: lx + tObj.sublabel.width, top: ly, originY: "center" });
-                tObj.prob.set({ left: lx + tObj.sublabel.width + tObj.key.width, top: ly, originY: "center" });
-                if (tObj.reward) {
-                    tObj.reward.set({ left: lx + tObj.sublabel.width + tObj.key.width + tObj.prob.width, top: ly, originY: "center" });
+                if (tObj.type === "edge") {
+                    tObj.edgeHeader.set({ left: lx, top: ly, originY: "center" });
+                    if (this.edgeDisplay !== "always") tObj.edgeHeader.opacity = 0;
+                    mdpInstance.draw(tObj.edgeHeader);
+                    result.items.push(tObj.edgeHeader);
+                } else {
+                    var ilx = lx + indent;
+                    tObj.actionLabel.set({ left: ilx, top: ly, originY: "center" });
+                    tObj.key.set({ left: ilx + tObj.actionLabel.width + pad, top: ly, originY: "center" });
+                    tObj.prob.set({ left: ilx + tObj.actionLabel.width + pad + tObj.key.width + pad, top: ly, originY: "center" });
+                    if (tObj.reward) {
+                        tObj.reward.set({ left: ilx + tObj.actionLabel.width + pad + tObj.key.width + pad + tObj.prob.width + pad, top: ly, originY: "center" });
+                    }
+                    if (this.edgeDisplay !== "always") {
+                        tObj.actionLabel.opacity = 0;
+                        tObj.key.opacity = 0;
+                        tObj.prob.opacity = 0;
+                        if (tObj.reward) tObj.reward.opacity = 0;
+                    }
+                    mdpInstance.draw(tObj.actionLabel);
+                    mdpInstance.draw(tObj.key);
+                    mdpInstance.draw(tObj.prob);
+                    if (tObj.reward) mdpInstance.draw(tObj.reward);
+                    result.items.push(tObj.actionLabel);
+                    result.items.push(tObj.key);
+                    result.items.push(tObj.prob);
+                    if (tObj.reward) result.items.push(tObj.reward);
                 }
-                if (this.edgeDisplay !== "always") {
-                    tObj.sublabel.opacity = 0;
-                    tObj.key.opacity = 0;
-                    tObj.prob.opacity = 0;
-                    if (tObj.reward) tObj.reward.opacity = 0;
-                }
-                mdpInstance.draw(tObj.sublabel);
-                mdpInstance.draw(tObj.key);
-                mdpInstance.draw(tObj.prob);
-                if (tObj.reward) mdpInstance.draw(tObj.reward);
-                result.items.push(tObj.sublabel);
-                result.items.push(tObj.key);
-                result.items.push(tObj.prob);
-                if (tObj.reward) result.items.push(tObj.reward);
             }
             return result;
         };
@@ -289,7 +312,7 @@
                     originX: "left",
                     originY: "center",
                     angle: Math.atan2(dy, dx) * 180 / Math.PI,
-                    fill: "rgb(255, 0, 0)",
+                    fill: "rgba(0, 0, 0, 0)",
                     selectable: false,
                     evented: true,
                 });
@@ -301,7 +324,7 @@
 
             for (i = 0; i < arrowPositions.length; i++) {
                 var pos = arrowPositions[i];
-                labelObj = this._buildArrowLabels(pos.childName, pos.midX, pos.midY, mdpInstance);
+                labelObj = this._buildArrowLabels(pos.childName, pos.midX, pos.midY, mdpInstance, i);
                 this.labels.push(labelObj);
                 this._attachArrowHover(this.hitBoxes[i], i, labelObj, mdpInstance);
             }
