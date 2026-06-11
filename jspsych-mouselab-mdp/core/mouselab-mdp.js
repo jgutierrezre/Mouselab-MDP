@@ -91,7 +91,10 @@
             if (nm != null) this.nodeDisplay = nm;
             if (em != null) this.edgeDisplay = em;
 
-            _.extend(this, c);
+            _.extend(this, _.pick(c, [
+                "leftMessage", "centerMessage", "rightMessage", "lowerMessage",
+                "playerImageScale", "size"
+            ]));
             ctx.checkObj(this);
             this.invKeys = _.invert(this.keys);
             this.data = {
