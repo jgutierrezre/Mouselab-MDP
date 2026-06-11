@@ -9,7 +9,7 @@ Demonstrates the mouselab-mdp jspsych plugin
 
 # Enforce a minimum window size
 checkWindowSize = (width, height, display) ->
-  console.log 'cws'
+  window.MouselabMDPCtx?.DEBUG_MODE && console.log 'cws'
   win_width = $(window).width()
   maxHeight = $(window).height()
   if $(window).width() < width or $(window).height() < height
@@ -29,14 +29,19 @@ loadJson = (file, callback) ->
     dataType: 'json'
     url: file
     success: (data) -> callback(data)
+    error: (jqXHR, status, err) ->
+      $('#jspsych-target').html """
+        <h1>Error</h1>
+        <p>Failed to load experiment data. Please refresh the page or contact the researcher if the problem persists.</p>
+      """
 
 $(window).on 'load', ->
   loadJson "static/json/trials.json", (trials) ->
     startSession trials
 
 startSession = (trials) ->
-  console.log 'START SESSION'
-  console.log trials
+  window.MouselabMDPCtx?.DEBUG_MODE && console.log 'START SESSION'
+  window.MouselabMDPCtx?.DEBUG_MODE && console.log trials
 
   #  ============================== #
   #  ====== TRIAL DEFINITION ====== #
@@ -79,5 +84,5 @@ startSession = (trials) ->
       jsPsych.data.displayData()
 
     on_data_update: (data) ->
-      console.log 'data', data
+      window.MouselabMDPCtx?.DEBUG_MODE && console.log 'data', data
 

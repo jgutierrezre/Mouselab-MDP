@@ -12,8 +12,8 @@ var checkWindowSize, loadJson, startSession;
 
 // Enforce a minimum window size
 checkWindowSize = function(width, height, display) {
-  var maxHeight, win_width;
-  console.log('cws');
+  var maxHeight, ref, win_width;
+  ((ref = window.MouselabMDPCtx) != null ? ref.DEBUG_MODE : void 0) && console.log('cws');
   win_width = $(window).width();
   maxHeight = $(window).height();
   if ($(window).width() < width || $(window).height() < height) {
@@ -37,6 +37,9 @@ loadJson = function(file, callback) {
     url: file,
     success: function(data) {
       return callback(data);
+    },
+    error: function(jqXHR, status, err) {
+      return $('#jspsych-target').html("<h1>Error</h1>\n<p>Failed to load experiment data. Please refresh the page or contact the researcher if the problem persists.</p>");
     }
   });
 };
@@ -48,9 +51,9 @@ $(window).on('load', function() {
 });
 
 startSession = function(trials) {
-  var i, main, timeline, welcome;
-  console.log('START SESSION');
-  console.log(trials);
+  var i, main, ref, ref1, timeline, welcome;
+  ((ref = window.MouselabMDPCtx) != null ? ref.DEBUG_MODE : void 0) && console.log('START SESSION');
+  ((ref1 = window.MouselabMDPCtx) != null ? ref1.DEBUG_MODE : void 0) && console.log(trials);
   //  ============================== #
   //  ====== TRIAL DEFINITION ====== #
   //  ============================== #
@@ -79,7 +82,8 @@ startSession = function(trials) {
       return jsPsych.data.displayData();
     },
     on_data_update: function(data) {
-      return console.log('data', data);
+      var ref2;
+      return ((ref2 = window.MouselabMDPCtx) != null ? ref2.DEBUG_MODE : void 0) && console.log('data', data);
     }
   });
 };
