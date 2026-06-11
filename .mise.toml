@@ -6,9 +6,13 @@ node = "20"
 description = "Install Python and Node dependencies"
 run = "uv sync && npm install"
 
+[tasks.build]
+description = "Build the TypeScript plugin bundle"
+run = "npm run build"
+
 [tasks.exp]
-description = "Generate trials and compile CoffeeScript"
-run = "cd experiment && make exp"
+description = "Generate trials, compile CoffeeScript, and build plugin"
+run = "cd experiment && make exp && cd .. && npm run build"
 
 [tasks.watch]
 description = "Watch CoffeeScript compilation"

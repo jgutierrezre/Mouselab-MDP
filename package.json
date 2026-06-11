@@ -5,9 +5,13 @@
   "description": "Tooling for the Mouselab-MDP demo experiment",
   "license": "MIT",
   "scripts": {
-    "serve": "node server.js"
+    "serve": "node server.js",
+    "build": "node esbuild.config.js",
+    "typecheck": "tsc --project jspsych-mouselab-mdp/tsconfig.json --noEmit"
   },
   "devDependencies": {
-    "coffeescript": "2.2.2"
+    "coffeescript": "2.2.2",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.7.0"
   }
 }
