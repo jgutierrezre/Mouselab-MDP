@@ -1,7 +1,7 @@
 // Config file - central configuration for MouselabMDP rendering and behavior
 (function (ctx) {
     ctx.CONFIG = {
-        ANIMATION_SPEED: 40.5,    // px per ms multiplier (lower = faster)
+        ANIMATION_SPEED: 0.5,    // px per ms multiplier (lower = faster)
         SIZE: 120,               // default state node diameter
         EDGE_WIDTH: 4,           // arrow stroke width
         HOVER_EDGE_WIDTH: 6,     // arrow stroke width on hover
