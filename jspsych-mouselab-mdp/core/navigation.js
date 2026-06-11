@@ -4,38 +4,44 @@
 
     proto.handleKey = function (s0, a) {
         var edgeView, reward, s1, s1g, transition;
-        ctx.LOG_DEBUG("handleKey", s0, a);
-        this.data.actions.push(a);
-        this.data.actionTimes.push(Date.now() - this.initTime);
-        transition = this.sampleTransition(this.graph[s0][a]);
-        reward = transition.reward;
-        s1 = transition.nextState;
-        edgeView =
-            this.edgeViews != null
-                ? this.edgeViews[s0] != null
-                    ? this.edgeViews[s0][a]
-                    : void 0
-                : void 0;
-        this.data.transitions.push({
-            state: s0,
-            action: a,
-            reward: reward,
-            nextState: s1,
-            probability: transition.probability,
-        });
-        if (edgeView != null && transition.outcomeIndex != null) {
-            this.pendingTrail = {
-                edgeView: edgeView,
-                outcomeIndex: transition.outcomeIndex,
-                actionChar: a.toUpperCase(),
-            };
+        try {
+            ctx.LOG_DEBUG("handleKey", s0, a);
+            this.data.actions.push(a);
+            this.data.actionTimes.push(Date.now() - this.initTime);
+            var edgeData = this.graph[s0] && this.graph[s0][a];
+            if (!edgeData) return;
+            transition = this.sampleTransition(edgeData);
+            reward = transition.reward;
+            s1 = transition.nextState;
+            edgeView =
+                this.edgeViews != null
+                    ? this.edgeViews[s0] != null
+                        ? this.edgeViews[s0][a]
+                        : void 0
+                    : void 0;
+            this.data.transitions.push({
+                state: s0,
+                action: a,
+                reward: reward,
+                nextState: s1,
+                probability: transition.probability,
+            });
+            if (edgeView != null && transition.outcomeIndex != null) {
+                this.pendingTrail = {
+                    edgeView: edgeView,
+                    outcomeIndex: transition.outcomeIndex,
+                    actionChar: a.toUpperCase(),
+                };
+            }
+            if (this.player) {
+                this.canvas.bringToFront(this.player);
+            }
+            ctx.LOG_DEBUG(s0 + ", " + a + " -> " + reward + ", " + s1);
+            s1g = this.nodes[s1];
+            return this.animateMove(s1g, reward, edgeView != null ? edgeView.branchPoint : void 0, s1);
+        } catch (err) {
+            return this._handleError("handleKey", err);
         }
-        if (this.player) {
-            this.canvas.bringToFront(this.player);
-        }
-        ctx.LOG_DEBUG(s0 + ", " + a + " -> " + reward + ", " + s1);
-        s1g = this.nodes[s1];
-        return this.animateMove(s1g, reward, edgeView != null ? edgeView.branchPoint : void 0, s1);
     };
 
     proto.sampleTransition = function (edge) {
@@ -74,6 +80,10 @@
     proto.animateMove = function (s1g, reward, via, finalState) {
         var waypoints, segments, totalDist, i, d, duration;
         var trailInfo = null;
+        if (!this.player) {
+            ctx.PRINT("animateMove called without initialized player");
+            return this.arrive(finalState);
+        }
         waypoints = [{ left: this.player.left, top: this.player.top }];
         if (via != null) {
             waypoints.push(via);
