@@ -2,32 +2,47 @@
 (function (ctx) {
     var proto = ctx.MouselabMDP.prototype;
 
-    proto.run = function () {
-        ctx.LOG_DEBUG("run");
-        this.buildMap();
-        if (this._cachedPlayerImg && this._cachedPlayerImgUrl === this.playerImage) {
-            var img = new fabric.Image(this._cachedPlayerImg, {
-                left: 0,
-                top: 0,
-            });
-            this.initPlayer(img);
-            this.canvas.renderAll();
-            this.initTime = Date.now();
-            return this.arrive(this.initial);
+    proto._handleError = function (method, err) {
+        ctx.PRINT("MouselabMDP error in " + method + ":", err);
+        if (this.keyListener) {
+            jsPsych.pluginAPI.cancelKeyboardResponse(this.keyListener);
+            this.keyListener = null;
         }
-        return fabric.Image.fromURL(
-            this.playerImage,
-            (function (_this) {
-                return function (img) {
-                    _this._cachedPlayerImg = img.getElement();
-                    _this._cachedPlayerImgUrl = _this.playerImage;
-                    _this.initPlayer(img);
-                    _this.canvas.renderAll();
-                    _this.initTime = Date.now();
-                    return _this.arrive(_this.initial);
-                };
-            })(this),
-        );
+        this.data.error = { method: method, message: err.message };
+        this.display.empty();
+        return jsPsych.finishTrial(this.data);
+    };
+
+    proto.run = function () {
+        try {
+            ctx.LOG_DEBUG("run");
+            this.buildMap();
+            if (this._cachedPlayerImg && this._cachedPlayerImgUrl === this.playerImage) {
+                var img = new fabric.Image(this._cachedPlayerImg, {
+                    left: 0,
+                    top: 0,
+                });
+                this.initPlayer(img);
+                this.canvas.renderAll();
+                this.initTime = Date.now();
+                return this.arrive(this.initial);
+            }
+            return fabric.Image.fromURL(
+                this.playerImage,
+                (function (_this) {
+                    return function (img) {
+                        _this._cachedPlayerImg = img.getElement();
+                        _this._cachedPlayerImgUrl = _this.playerImage;
+                        _this.initPlayer(img);
+                        _this.canvas.renderAll();
+                        _this.initTime = Date.now();
+                        return _this.arrive(_this.initial);
+                    };
+                })(this),
+            );
+        } catch (err) {
+            return this._handleError("run", err);
+        }
     };
 
     proto.draw = function (obj) {
@@ -172,21 +187,13 @@
         this.pendingTrail = null;
     };
 
-    proto.reload = function (config) {
-        this.initConfig(config);
-        if ($("#mouselab-canvas").length === 0) {
-            this.initDOM(config);
-            if (this.canvas) {
-                this.canvas.dispose();
-                this.canvas = null;
-            }
-        }
-        var c = config;
+    proto._updateMessages = function (c) {
         var leftMessage = c.leftMessage != null ? c.leftMessage : "Round: 1/1";
         var centerMessage = c.centerMessage != null ? c.centerMessage : "&nbsp;";
         var rightMessage =
             c.rightMessage != null ? c.rightMessage : "Score: <span id=mouselab-score/>";
         var lowerMessage = c.lowerMessage != null ? c.lowerMessage : ctx.KEY_DESCRIPTION;
+
         $("#mouselab-msg-left").html(leftMessage);
         $("#mouselab-msg-center").html(centerMessage);
         $("#mouselab-msg-right").html(rightMessage);
@@ -196,25 +203,45 @@
         this.rightMessage = $("#mouselab-msg-right");
         this.lowerMessage = $("#mouselab-msg-bottom");
         this.canvasElement = $("#mouselab-canvas");
-        this.addScore(0);
-        this.reset();
-        this.run();
+    };
+
+    proto.reload = function (config) {
+        try {
+            this.initConfig(config);
+            if ($("#mouselab-canvas").length === 0) {
+                this.initDOM(config);
+                if (this.canvas) {
+                    this.canvas.dispose();
+                    this.canvas = null;
+                }
+            }
+            this._updateMessages(config);
+            this.addScore(0);
+            this.reset();
+            this.run();
+        } catch (err) {
+            return this._handleError("reload", err);
+        }
     };
 
     proto.endTrial = function () {
-        this.lowerMessage.html("<b>Press any key to continue.</br>");
-        return (this.keyListener = jsPsych.pluginAPI.getKeyboardResponse({
-            valid_responses: [],
-            rt_method: "date",
-            persist: false,
-            allow_held_key: false,
-            callback_function: (function (_this) {
-                return function (info) {
-                    _this.display.empty();
-                    return jsPsych.finishTrial(_this.data);
-                };
-            })(this),
-        }));
+        try {
+            this.lowerMessage.html("<b>Press any key to continue.</br>");
+            return (this.keyListener = jsPsych.pluginAPI.getKeyboardResponse({
+                valid_responses: [],
+                rt_method: "date",
+                persist: false,
+                allow_held_key: false,
+                callback_function: (function (_this) {
+                    return function (info) {
+                        _this.display.empty();
+                        return jsPsych.finishTrial(_this.data);
+                    };
+                })(this),
+            }));
+        } catch (err) {
+            return this._handleError("endTrial", err);
+        }
     };
 
     proto.checkFinished = function () {
