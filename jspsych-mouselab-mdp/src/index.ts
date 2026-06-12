@@ -10,7 +10,7 @@ let instance: MouselabMDP | null = null;
 
 const plugin = {
   trial: function (display_element: JQuery<HTMLElement>, trialConfig: TrialConfig): number {
-    trialConfig = jsPsych.pluginAPI.evaluateFunctionParameters(trialConfig) as TrialConfig;
+    trialConfig = jsPsych.pluginAPI.evaluateFunctionParameters(trialConfig, ['scoreFormat']) as TrialConfig;
     trialConfig.display = display_element;
     (trialConfig as any).timing_post_trial = 0;
 

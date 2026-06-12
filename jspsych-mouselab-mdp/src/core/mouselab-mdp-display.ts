@@ -10,8 +10,12 @@ import { LOG_DEBUG } from "./utils";
       parts.push(this.nodeLabels[s]);
     }
     const r = this.nodeRewards[s];
-    parts.push("$" + (r != null ? r : 0));
-    g.setLabel(parts.join("  "), r);
+    if (r != null) {
+      parts.push(String(r));
+    }
+    if (parts.length > 0) {
+      g.setLabel(parts.join("  "), r);
+    }
     (this as any).recordQuery("click", "node", s);
   }
 };
@@ -24,8 +28,12 @@ import { LOG_DEBUG } from "./utils";
       parts.push(this.nodeLabels[s]);
     }
     const r = this.nodeRewards[s];
-    parts.push("$" + (r != null ? r : 0));
-    g.setLabel(parts.join("  "), r);
+    if (r != null) {
+      parts.push(String(r));
+    }
+    if (parts.length > 0) {
+      g.setLabel(parts.join("  "), r);
+    }
   }
   (this as any).recordQuery("mouseover", "node", s);
 };

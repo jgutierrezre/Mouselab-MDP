@@ -1,7 +1,7 @@
 import { Arrow } from "./arrow";
 import { IMouselabMDP } from "./interfaces";
 import { CONFIG } from "../core/config";
-import { angle, polarMove, SIZE as DEFAULT_SIZE } from "../core/utils";
+import { angle, polarMove } from "../core/utils";
 import { buildArrowLabels, SplitEdgeLabelsContext } from "./split-edge-labels";
 import type { EdgeData, LabelObj } from "../types/types";
 
@@ -25,6 +25,7 @@ export class SplitEdge {
   objectCaching: boolean;
   mdpInstance: IMouselabMDP | null;
   hoveredIndex: number | null;
+  clickedIndices: Set<number>;
 
   constructor(
     c1: any,
@@ -42,7 +43,7 @@ export class SplitEdge {
     this.children = children;
     this.allActions = config.allActions || {};
     this.edgeDisplay = config.edgeDisplay != null ? config.edgeDisplay : "hover";
-    this.SIZE = config.SIZE || DEFAULT_SIZE;
+    this.SIZE = config.SIZE || CONFIG.SIZE;
     this.edgeLabels = config.edgeLabels || null;
     this.groupLabels = config.groupLabels || {};
     this.actionLabels = config.actionLabels || {};
@@ -58,6 +59,7 @@ export class SplitEdge {
     this.objectCaching = false;
     this.mdpInstance = null;
     this.hoveredIndex = null;
+    this.clickedIndices = new Set();
   }
 
   private _labelsContext(): SplitEdgeLabelsContext {
@@ -96,7 +98,7 @@ export class SplitEdge {
   }
 
   attach(mdpInstance: IMouselabMDP): this {
-    const radiusGap = 8;
+    const radiusGap = CONFIG.BRANCH_RADIUS_GAP;
     const stemStart = this.parent.left + this.parent.radius + radiusGap;
     const stemStartY = this.parent.top;
     this.stemStart = { left: stemStart, top: stemStartY };
@@ -128,8 +130,8 @@ export class SplitEdge {
     const arrowPositions: { midX: number; midY: number; childName: string }[] = [];
     for (let i = 0; i < this.children.length; i++) {
       const childState = this.children[i];
-      const midX = branchX + 0.55 * (childState.left - branchX);
-      const midY = branchY + 0.55 * (childState.top - branchY);
+      const midX = branchX + CONFIG.BRANCH_ARROW_POSITION_RATIO * (childState.left - branchX);
+      const midY = branchY + CONFIG.BRANCH_ARROW_POSITION_RATIO * (childState.top - branchY);
 
       const arrow = new Arrow(
         branchX,
@@ -257,19 +259,12 @@ export class SplitEdge {
     });
     hitBox.on("mousedown", () => {
       if (self.edgeDisplay !== "click") return;
-      if (self.hoveredIndex != null && self.hoveredIndex !== index) {
-        for (let k = 0; k < self.labels.length; k++) {
-          if (k === self.hoveredIndex) {
-            self._setLabelVisibility(self.labels[k], false);
-          }
-        }
-      }
-      const already = self.hoveredIndex === index;
-      self.hoveredIndex = already ? null : index;
-      for (let k = 0; k < self.labels.length; k++) {
-        self._setLabelVisibility(self.labels[k], k === self.hoveredIndex);
-      }
-      if (!already) {
+      if (self.clickedIndices.has(index)) {
+        self.clickedIndices.delete(index);
+        self._setLabelVisibility(labelObj, false);
+      } else {
+        self.clickedIndices.add(index);
+        self._setLabelVisibility(labelObj, true);
         mdpInstance.addScore(-mdpInstance.edgeClickCost);
       }
       mdpInstance.recordQuery(

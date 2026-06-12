@@ -4,8 +4,6 @@ import { IMouselabMDP } from "./interfaces";
 import { CONFIG } from "../core/config";
 import { angle, polarMove, redGreen } from "../core/utils";
 
-const DEFAULT_SIZE = 120;
-
 export class Edge extends fabric.Group {
   s0: string;
   actionName: string;
@@ -29,9 +27,9 @@ export class Edge extends fabric.Group {
       mdpInstance: IMouselabMDP;
     }
   ) {
-    const SIZE = config.SIZE || DEFAULT_SIZE;
+    const SIZE = config.SIZE || CONFIG.SIZE;
     const mdpInstance = config.mdpInstance;
-    const spacing = config.spacing != null ? config.spacing : 8;
+    const spacing = config.spacing != null ? config.spacing : CONFIG.DEFAULT_EDGE_SPACING;
     const adjX = config.adjX != null ? config.adjX : 0;
     const adjY = config.adjY != null ? config.adjY : 0;
     const rotateLabel = config.rotateLabel != null ? config.rotateLabel : false;
@@ -66,7 +64,7 @@ export class Edge extends fabric.Group {
       x1,
       y1,
       angle(x1, y1, x2, y2),
-      SIZE * 0.45
+      SIZE * CONFIG.EDGE_LABEL_OFFSET_RATIO
     );
     const labX = ref[0];
     const labY = ref[1];
@@ -74,7 +72,7 @@ export class Edge extends fabric.Group {
     const label = new Text("----------", labX, labY, {
       angle: rotateLabel ? (ang * 180) / Math.PI : 0,
       fill: redGreen(initialLabel),
-      fontSize: SIZE / 6,
+      fontSize: SIZE * CONFIG.NODE_FONT_SIZE_RATIO,
     });
 
     const angRad = angle(x1, y1, x2, y2);

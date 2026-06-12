@@ -25,8 +25,6 @@ var MouselabMDPSetup = (() => {
   function incrementTrialIndex() {
     return TRIAL_INDEX += 1;
   }
-  var SIZE = 120;
-  var KEY_DESCRIPTION = "Navigate with the arrow keys.";
   function PRINT(...args) {
     if (!DEBUG_MODE) return;
     console.log.apply(console, args);
@@ -63,7 +61,13 @@ var MouselabMDPSetup = (() => {
     );
   }
   function redGreen(val) {
-    const n = typeof val === "string" ? parseFloat(val.replace("$", "")) : val;
+    if (typeof val === "number") {
+      if (val > 0) return "#080";
+      if (val < 0) return "#b00";
+      return "#888";
+    }
+    const n = parseFloat(String(val));
+    if (isNaN(n)) return "#888";
     if (n > 0) return "#080";
     if (n < 0) return "#b00";
     return "#888";
@@ -104,31 +108,35 @@ var MouselabMDPSetup = (() => {
       LOG_INFO("new MouselabMDP", this);
     }
     initDOM(c) {
-      const leftMessage = c.leftMessage != null ? c.leftMessage : "Round: 1/1";
-      const centerMessage = c.centerMessage != null ? c.centerMessage : "&nbsp;";
-      const rightMessage = c.rightMessage != null ? c.rightMessage : "Score: <span id=mouselab-score/>";
-      const lowerMessage = c.lowerMessage != null ? c.lowerMessage : KEY_DESCRIPTION;
-      this.leftMessage = $("<div>", {
-        id: "mouselab-msg-left",
-        class: "mouselab-header",
-        html: leftMessage
-      }).appendTo(this.display);
-      this.centerMessage = $("<div>", {
-        id: "mouselab-msg-center",
-        class: "mouselab-header",
-        html: centerMessage
-      }).appendTo(this.display);
-      this.rightMessage = $("<div>", {
-        id: "mouselab-msg-right",
-        class: "mouselab-header",
-        html: rightMessage
-      }).appendTo(this.display);
+      if (c.leftMessage != null) {
+        this.leftMessage = $("<div>", {
+          id: "mouselab-msg-left",
+          class: "mouselab-header",
+          html: c.leftMessage
+        }).appendTo(this.display);
+      }
+      if (c.centerMessage != null) {
+        this.centerMessage = $("<div>", {
+          id: "mouselab-msg-center",
+          class: "mouselab-header",
+          html: c.centerMessage
+        }).appendTo(this.display);
+      }
+      if (c.rightMessage != null) {
+        this.rightMessage = $("<div>", {
+          id: "mouselab-msg-right",
+          class: "mouselab-header",
+          html: c.rightMessage
+        }).appendTo(this.display);
+      }
       this.addScore(0);
       this.canvasElement = $("<canvas>", { id: "mouselab-canvas" }).attr({ width: 500, height: 500 }).appendTo(this.display);
-      this.lowerMessage = $("<div>", {
-        id: "mouselab-msg-bottom",
-        html: lowerMessage || "&nbsp"
-      }).appendTo(this.display);
+      if (c.lowerMessage != null) {
+        this.lowerMessage = $("<div>", {
+          id: "mouselab-msg-bottom",
+          html: c.lowerMessage
+        }).appendTo(this.display);
+      }
     }
     initConfig(c) {
       this.graph = c.graph;
@@ -137,7 +145,7 @@ var MouselabMDPSetup = (() => {
       this.nodeLabels = c.nodeLabels != null ? c.nodeLabels : null;
       this.nodeDisplay = c.nodeDisplay || "never";
       this.nodeClickCost = c.nodeClickCost != null ? c.nodeClickCost : 0;
-      this.edgeLabels = c.edgeLabels != null ? c.edgeLabels : "reward";
+      this.edgeLabels = c.edgeLabels != null ? c.edgeLabels : null;
       this.edgeDisplay = c.edgeDisplay || "always";
       this.edgeClickCost = c.edgeClickCost != null ? c.edgeClickCost : 0;
       this.keys = c.keys != null ? c.keys : KEYS;
@@ -148,6 +156,8 @@ var MouselabMDPSetup = (() => {
       this.nodeRewards = c.nodeRewards != null ? c.nodeRewards : {};
       this.groupLabels = c.groupLabels != null ? c.groupLabels : {};
       this.actionLabels = c.actionLabels != null ? c.actionLabels : {};
+      this.completionMessage = c.completionMessage != null ? c.completionMessage : "Press any key to continue.";
+      this.scoreFormat = c.scoreFormat != null ? c.scoreFormat : null;
       this.invKeys = _.invert(this.keys);
       this.data = {
         trialIndex: this.trialIndex,
@@ -189,8 +199,12 @@ var MouselabMDPSetup = (() => {
         parts.push(this.nodeLabels[s]);
       }
       const r = this.nodeRewards[s];
-      parts.push("$" + (r != null ? r : 0));
-      g.setLabel(parts.join("  "), r);
+      if (r != null) {
+        parts.push(String(r));
+      }
+      if (parts.length > 0) {
+        g.setLabel(parts.join("  "), r);
+      }
       this.recordQuery("click", "node", s);
     }
   };
@@ -202,8 +216,12 @@ var MouselabMDPSetup = (() => {
         parts.push(this.nodeLabels[s]);
       }
       const r = this.nodeRewards[s];
-      parts.push("$" + (r != null ? r : 0));
-      g.setLabel(parts.join("  "), r);
+      if (r != null) {
+        parts.push(String(r));
+      }
+      if (parts.length > 0) {
+        g.setLabel(parts.join("  "), r);
+      }
     }
     this.recordQuery("mouseover", "node", s);
   };
@@ -241,7 +259,8 @@ var MouselabMDPSetup = (() => {
   // jspsych-mouselab-mdp/src/core/mouselab-mdp-scoring.ts
   MouselabMDP.prototype.addScore = function(v) {
     this.data.score = round(this.data.score + v);
-    $("#mouselab-score").html("$" + this.data.score);
+    const displayScore = this.scoreFormat ? this.scoreFormat(this.data.score) : String(this.data.score);
+    $("#mouselab-score").html(displayScore);
     $("#mouselab-score").css("color", redGreen(this.data.score));
   };
   MouselabMDP.prototype.recordQuery = function(queryType, targetType, target) {
@@ -253,21 +272,60 @@ var MouselabMDPSetup = (() => {
   };
   MouselabMDP.prototype.getEdgeLabel = function(s0, actionName, r) {
     const eid = s0 + "_" + actionName;
-    const edgeLabel = this.edgeLabels && this.edgeLabels[eid] || eid;
-    const parts = [edgeLabel, actionName];
-    if (r != null) parts.push("$" + r);
+    const edgeLabel = this.edgeLabels && this.edgeLabels[eid];
+    const parts = [];
+    if (edgeLabel) parts.push(edgeLabel);
+    parts.push(actionName);
+    if (r != null) parts.push(String(r));
     return parts.join("  ");
   };
   MouselabMDP.prototype.isStochasticEdge = function(edge) {
     return edge.outcomes && edge.outcomes.length > 1;
   };
 
-  // jspsych-mouselab-mdp/src/core/mouselab-mdp-navigation.ts
+  // jspsych-mouselab-mdp/src/core/config.ts
   var CONFIG = {
+    ANIMATION_SPEED: 0.5,
+    SIZE: 120,
+    EDGE_WIDTH: 4,
+    HOVER_EDGE_WIDTH: 6,
+    ARROW_HEAD_SIZE: 10,
+    BRANCH_LABEL_FONT_SIZE: 12,
     ACTION_COLORS: ["#2196F3", "#F44336", "#4CAF50", "#FF9800"],
+    DEFAULT_EDGE_COLOR: "#888",
     TRAIL_COLOR: "#1565C0",
-    TRAIL_WIDTH: 5
+    TRAIL_WIDTH: 5,
+    STEM_COLOR: "#888",
+    STEM_WIDTH: 4,
+    NODE_INTERACTION_MODE: null,
+    EDGE_INTERACTION_MODE: null,
+    DEBUG_SHOW_VALUES: false,
+    NODE_RADIUS_RATIO: 0.25,
+    NODE_FONT_SIZE_RATIO: 1 / 6,
+    NODE_LABEL_PADDING_X: 8,
+    NODE_LABEL_PADDING_Y: 4,
+    NODE_LINE_HEIGHT_RATIO: 0.2,
+    NODE_LABEL_BG_RADIUS: 4,
+    NODE_LABEL_BG_STROKE: "#444",
+    NODE_LABEL_TEXT_FILL: "#222",
+    NODE_REWARD_TEXT_FILL: "#888",
+    NODE_DEFAULT_FILL: "#bbb",
+    DEFAULT_EDGE_SPACING: 8,
+    EDGE_LABEL_OFFSET_RATIO: 0.45,
+    BRANCH_ARROW_POSITION_RATIO: 0.55,
+    BRANCH_RADIUS_GAP: 8,
+    BRANCH_LABEL_PADDING: 6,
+    BRANCH_LABEL_INDENT: 10,
+    BRANCH_GROUP_LABEL_SIZE_DELTA: 2,
+    BRANCH_RECT_PADDING: 8,
+    BRANCH_RECT_OFFSET_X: 7,
+    BRANCH_LABEL_BG_FILL: "white",
+    BRANCH_LABEL_BG_STROKE: "#444",
+    PLAYER_SCALE_DEFAULT: 0.3,
+    TRAIL_OFFSET: 7.5
   };
+
+  // jspsych-mouselab-mdp/src/core/mouselab-mdp-navigation.ts
   MouselabMDP.prototype.handleKey = function(s0, a) {
     try {
       LOG_DEBUG("handleKey", s0, a);
@@ -379,7 +437,7 @@ var MouselabMDPSetup = (() => {
         childNode.left,
         childNode.top,
         ang,
-        -(childNode.radius + nodeGap + 7.5)
+        -(childNode.radius + nodeGap + CONFIG.TRAIL_OFFSET)
       );
       const arrowEnd = { left: ae[0], top: ae[1] };
       const seg0dx = waypoints[1].left - waypoints[0].left;
@@ -568,20 +626,19 @@ var MouselabMDPSetup = (() => {
   };
 
   // jspsych-mouselab-mdp/src/components/node.ts
-  var DEFAULT_SIZE2 = 120;
   var Node = class extends fabric.Group {
     constructor(name, left, top, config) {
-      const cellSize = config.SIZE || DEFAULT_SIZE2;
+      const cellSize = config.SIZE || CONFIG.SIZE;
       const mdpInstance = config.mdpInstance;
       const rewardVal = config.reward != null ? config.reward : null;
       const px = (left + 0.5) * cellSize;
       const py = (top + 0.5) * cellSize;
-      const lineHeight = cellSize / 5;
+      const lineHeight = cellSize * CONFIG.NODE_LINE_HEIGHT_RATIO;
       const conf = {
         left: px,
         top: py,
-        fill: "#bbbbbb",
-        radius: cellSize / 4,
+        fill: CONFIG.NODE_DEFAULT_FILL,
+        radius: cellSize * CONFIG.NODE_RADIUS_RATIO,
         label: ""
       };
       _.extend(conf, config);
@@ -591,10 +648,10 @@ var MouselabMDPSetup = (() => {
         top: py,
         width: 0,
         height: 0,
-        rx: 4,
-        ry: 4,
+        rx: CONFIG.NODE_LABEL_BG_RADIUS,
+        ry: CONFIG.NODE_LABEL_BG_RADIUS,
         fill: "white",
-        stroke: "#444",
+        stroke: CONFIG.NODE_LABEL_BG_STROKE,
         strokeWidth: 1,
         selectable: false,
         evented: false,
@@ -603,15 +660,15 @@ var MouselabMDPSetup = (() => {
         opacity: 0
       });
       labelBg.objectCaching = false;
-      const fs = cellSize / 6;
+      const fs = cellSize * CONFIG.NODE_FONT_SIZE_RATIO;
       const label = new Text("", px, py - lineHeight / 2, {
         fontSize: fs,
-        fill: "#222",
+        fill: CONFIG.NODE_LABEL_TEXT_FILL,
         fontWeight: "bold"
       });
       const rewardText = new Text("", px, py + lineHeight / 2, {
         fontSize: fs,
-        fill: "#888"
+        fill: CONFIG.NODE_REWARD_TEXT_FILL
       });
       const radius = circle.radius;
       super([circle, labelBg, label, rewardText]);
@@ -644,18 +701,18 @@ var MouselabMDPSetup = (() => {
       if (txt) {
         const parts = txt.split("  ");
         this.label.setText(parts[0] || "");
-        const rewardStr = parts[1] || "$" + (r != null ? r : 0);
+        const rewardStr = parts[1] || (r != null ? String(r) : "");
         this.rewardText.setText(rewardStr);
         this.rewardText.setFill(
-          r != null ? redGreen(r) : redGreen(rewardStr)
+          r != null ? redGreen(r) : "#888"
         );
         this.dirty = true;
         const maxW = Math.max(this.label.width, this.rewardText.width);
         const lineH = this.label.fontSize * 1.3;
         const totalH = (this.label.text ? lineH : 0) + (this.rewardText.text ? lineH : 0);
         this.labelBg.set({
-          width: maxW + 8,
-          height: totalH + 4
+          width: maxW + CONFIG.NODE_LABEL_PADDING_X,
+          height: totalH + CONFIG.NODE_LABEL_PADDING_Y
         });
         this.labelBg.opacity = 1;
         this.labelBg.dirty = true;
@@ -671,28 +728,9 @@ var MouselabMDPSetup = (() => {
     }
   };
 
-  // jspsych-mouselab-mdp/src/core/config.ts
-  var CONFIG2 = {
-    ANIMATION_SPEED: 0.5,
-    SIZE: 120,
-    EDGE_WIDTH: 4,
-    HOVER_EDGE_WIDTH: 6,
-    ARROW_HEAD_SIZE: 10,
-    BRANCH_LABEL_FONT_SIZE: 12,
-    ACTION_COLORS: ["#2196F3", "#F44336", "#4CAF50", "#FF9800"],
-    DEFAULT_EDGE_COLOR: "#888",
-    TRAIL_COLOR: "#1565C0",
-    TRAIL_WIDTH: 5,
-    STEM_COLOR: "#888",
-    STEM_WIDTH: 4,
-    NODE_INTERACTION_MODE: null,
-    EDGE_INTERACTION_MODE: null,
-    DEBUG_SHOW_VALUES: false
-  };
-
   // jspsych-mouselab-mdp/src/components/arrow.ts
   var Arrow = class extends fabric.Group {
-    constructor(x1, y1, x2, y2, adj1 = 0, adj2 = 0, color = CONFIG2.DEFAULT_EDGE_COLOR, width = CONFIG2.EDGE_WIDTH) {
+    constructor(x1, y1, x2, y2, adj1 = 0, adj2 = 0, color = CONFIG.DEFAULT_EDGE_COLOR, width = CONFIG.EDGE_WIDTH) {
       const ang = angle(x1, y1, x2, y2);
       const ref = polarMove(x1, y1, ang, adj1);
       x1 = ref[0];
@@ -714,8 +752,8 @@ var MouselabMDPSetup = (() => {
         top: y2 + deltaY,
         pointType: "arrow_start",
         angle: ang * 180 / Math.PI,
-        width: CONFIG2.ARROW_HEAD_SIZE,
-        height: CONFIG2.ARROW_HEAD_SIZE,
+        width: CONFIG.ARROW_HEAD_SIZE,
+        height: CONFIG.ARROW_HEAD_SIZE,
         fill: color
       });
       super([line, point]);
@@ -726,12 +764,11 @@ var MouselabMDPSetup = (() => {
   };
 
   // jspsych-mouselab-mdp/src/components/edge.ts
-  var DEFAULT_SIZE3 = 120;
   var Edge = class extends fabric.Group {
     constructor(c1, reward, c2, config) {
-      const SIZE2 = config.SIZE || DEFAULT_SIZE3;
+      const SIZE = config.SIZE || CONFIG.SIZE;
       const mdpInstance = config.mdpInstance;
-      const spacing = config.spacing != null ? config.spacing : 8;
+      const spacing = config.spacing != null ? config.spacing : CONFIG.DEFAULT_EDGE_SPACING;
       const adjX = config.adjX != null ? config.adjX : 0;
       const adjY = config.adjY != null ? config.adjY : 0;
       const rotateLabel = config.rotateLabel != null ? config.rotateLabel : false;
@@ -747,8 +784,8 @@ var MouselabMDPSetup = (() => {
         y2,
         c1.radius + spacing,
         c2.radius + spacing,
-        CONFIG2.DEFAULT_EDGE_COLOR,
-        CONFIG2.EDGE_WIDTH
+        CONFIG.DEFAULT_EDGE_COLOR,
+        CONFIG.EDGE_WIDTH
       );
       arrow.set({
         selectable: false,
@@ -762,14 +799,14 @@ var MouselabMDPSetup = (() => {
         x1,
         y1,
         angle(x1, y1, x2, y2),
-        SIZE2 * 0.45
+        SIZE * CONFIG.EDGE_LABEL_OFFSET_RATIO
       );
       const labX = ref[0];
       const labY = ref[1];
       const label = new Text("----------", labX, labY, {
         angle: rotateLabel ? ang * 180 / Math.PI : 0,
         fill: redGreen(initialLabel),
-        fontSize: SIZE2 / 6
+        fontSize: SIZE * CONFIG.NODE_FONT_SIZE_RATIO
       });
       const angRad = angle(x1, y1, x2, y2);
       const hitStart = polarMove(x1, y1, angRad, c1.radius + spacing);
@@ -780,7 +817,7 @@ var MouselabMDPSetup = (() => {
         left: hitStart[0],
         top: hitStart[1],
         width: Math.hypot(dx, dy),
-        height: CONFIG2.EDGE_WIDTH + 4,
+        height: CONFIG.EDGE_WIDTH + 4,
         originX: "left",
         originY: "center",
         angle: Math.atan2(dy, dx) * 180 / Math.PI,
@@ -802,7 +839,7 @@ var MouselabMDPSetup = (() => {
       this.hitBox.on("mouseover", () => {
         if (mdpInstance.edgeDisplay !== "hover") return;
         if (self.arrow && self.arrow._objects && self.arrow._objects[0]) {
-          self.arrow._objects[0].set({ strokeWidth: CONFIG2.HOVER_EDGE_WIDTH });
+          self.arrow._objects[0].set({ strokeWidth: CONFIG.HOVER_EDGE_WIDTH });
           self.arrow.dirty = true;
         }
         return mdpInstance.mouseoverEdge(self, self.s0, self.actionName, reward);
@@ -810,7 +847,7 @@ var MouselabMDPSetup = (() => {
       this.hitBox.on("mouseout", () => {
         if (mdpInstance.edgeDisplay !== "hover") return;
         if (self.arrow && self.arrow._objects && self.arrow._objects[0]) {
-          self.arrow._objects[0].set({ strokeWidth: CONFIG2.EDGE_WIDTH });
+          self.arrow._objects[0].set({ strokeWidth: CONFIG.EDGE_WIDTH });
           self.arrow.dirty = true;
         }
         return mdpInstance.mouseoutEdge(self, self.s0, self.actionName, reward);
@@ -832,10 +869,10 @@ var MouselabMDPSetup = (() => {
 
   // jspsych-mouselab-mdp/src/components/split-edge-labels.ts
   function actionColorForName(name) {
-    return CONFIG2.ACTION_COLORS[name.toUpperCase().charCodeAt(0) - 65] || CONFIG2.DEFAULT_EDGE_COLOR;
+    return CONFIG.ACTION_COLORS[name.toUpperCase().charCodeAt(0) - 65] || CONFIG.DEFAULT_EDGE_COLOR;
   }
   function buildArrowLabels(ctx, targetName, midX, midY, mdpInstance, edgeIdx) {
-    const fontSize = CONFIG2.BRANCH_LABEL_FONT_SIZE;
+    const fontSize = CONFIG.BRANCH_LABEL_FONT_SIZE;
     const lineHeight = fontSize * 1.3;
     const pad = 6;
     const indent = 10;
@@ -843,7 +880,7 @@ var MouselabMDPSetup = (() => {
     let maxLabelWidth = 0;
     let labelY = 0;
     let gl = null;
-    const groupLabel = ctx.groupLabels[ctx.parentName] || ctx.parentName;
+    const groupLabel = ctx.groupLabels[ctx.parentName];
     if (groupLabel != null) {
       gl = new fabric.Text(groupLabel, {
         fontSize: fontSize + 2,
@@ -860,21 +897,23 @@ var MouselabMDPSetup = (() => {
       labelY += lineHeight;
     }
     const eid = ctx.parentName + "_" + edgeIdx;
-    const showEdgeLabel = ctx.edgeLabels && ctx.edgeLabels[eid] || "edge_" + edgeIdx;
-    const edgeLabelText = new fabric.Text(showEdgeLabel, {
-      fontSize,
-      fill: "#555",
-      fontFamily: "helvetica",
-      fontWeight: "bold",
-      originX: "left",
-      originY: "top",
-      selectable: false,
-      evented: false
-    });
-    edgeLabelText.objectCaching = false;
-    texts.push({ type: "edge", edgeLabel: edgeLabelText, y: labelY });
-    maxLabelWidth = Math.max(maxLabelWidth, edgeLabelText.width + 14);
-    labelY += lineHeight;
+    const showEdgeLabel = ctx.edgeLabels && ctx.edgeLabels[eid];
+    if (showEdgeLabel != null) {
+      const edgeLabelText = new fabric.Text(showEdgeLabel, {
+        fontSize,
+        fill: "#555",
+        fontFamily: "helvetica",
+        fontWeight: "bold",
+        originX: "left",
+        originY: "top",
+        selectable: false,
+        evented: false
+      });
+      edgeLabelText.objectCaching = false;
+      texts.push({ type: "edge", edgeLabel: edgeLabelText, y: labelY });
+      maxLabelWidth = Math.max(maxLabelWidth, edgeLabelText.width + 14);
+      labelY += lineHeight;
+    }
     for (const actionName in ctx.allActions) {
       const allOutcomes = ctx.allActions[actionName].outcomes;
       for (let j = 0; j < allOutcomes.length; j++) {
@@ -883,17 +922,7 @@ var MouselabMDPSetup = (() => {
           const reward = allOutcomes[j].reward;
           const actColor = actionColorForName(actionName);
           const actionEid = eid + "_" + actionName;
-          const actionLabel = ctx.actionLabels && ctx.actionLabels[actionEid] || "action_" + actionName + "_edge_" + edgeIdx;
-          const actionLabelText = new fabric.Text(actionLabel, {
-            fontSize,
-            fill: "#333",
-            fontFamily: "helvetica",
-            originX: "left",
-            originY: "top",
-            selectable: false,
-            evented: false
-          });
-          actionLabelText.objectCaching = false;
+          const actionLabel = ctx.actionLabels && ctx.actionLabels[actionEid];
           const keyText = new fabric.Text(actionName, {
             fontSize,
             fill: actColor,
@@ -905,7 +934,7 @@ var MouselabMDPSetup = (() => {
             evented: false
           });
           keyText.objectCaching = false;
-          const probText = new fabric.Text(" " + prob + "%", {
+          const probText = new fabric.Text(prob + "%", {
             fontSize,
             fill: "#333",
             fontFamily: "helvetica",
@@ -915,31 +944,70 @@ var MouselabMDPSetup = (() => {
             evented: false
           });
           probText.objectCaching = false;
-          let lineWidth = indent + actionLabelText.width + pad + keyText.width + pad + probText.width;
-          const actionItem = {
-            type: "line",
-            actionLabel: actionLabelText,
-            key: keyText,
-            prob: probText,
-            y: labelY
-          };
-          if (reward != null) {
-            const rewardText = new fabric.Text(" $" + reward, {
+          let lineWidth;
+          if (actionLabel) {
+            const actionLabelText = new fabric.Text(actionLabel, {
               fontSize,
-              fill: redGreen(reward),
+              fill: "#333",
               fontFamily: "helvetica",
               originX: "left",
               originY: "top",
               selectable: false,
               evented: false
             });
-            rewardText.objectCaching = false;
-            actionItem.reward = rewardText;
-            lineWidth += pad + rewardText.width;
+            actionLabelText.objectCaching = false;
+            lineWidth = indent + actionLabelText.width + pad + keyText.width + pad + probText.width;
+            const actionItem = {
+              type: "line",
+              actionLabel: actionLabelText,
+              key: keyText,
+              prob: probText,
+              y: labelY
+            };
+            if (reward != null) {
+              const rewardText = new fabric.Text(String(reward), {
+                fontSize,
+                fill: redGreen(reward),
+                fontFamily: "helvetica",
+                originX: "left",
+                originY: "top",
+                selectable: false,
+                evented: false
+              });
+              rewardText.objectCaching = false;
+              actionItem.reward = rewardText;
+              lineWidth += pad + rewardText.width;
+            }
+            texts.push(actionItem);
+            maxLabelWidth = Math.max(maxLabelWidth, lineWidth + 14);
+            labelY += lineHeight;
+          } else {
+            lineWidth = keyText.width + pad + probText.width;
+            const keyOnlyItem = {
+              type: "line",
+              actionLabel: null,
+              key: keyText,
+              prob: probText,
+              y: labelY
+            };
+            if (reward != null) {
+              const rewardText = new fabric.Text(String(reward), {
+                fontSize,
+                fill: redGreen(reward),
+                fontFamily: "helvetica",
+                originX: "left",
+                originY: "top",
+                selectable: false,
+                evented: false
+              });
+              rewardText.objectCaching = false;
+              keyOnlyItem.reward = rewardText;
+              lineWidth += pad + rewardText.width;
+            }
+            texts.push(keyOnlyItem);
+            maxLabelWidth = Math.max(maxLabelWidth, lineWidth + 14);
+            labelY += lineHeight;
           }
-          texts.push(actionItem);
-          maxLabelWidth = Math.max(maxLabelWidth, lineWidth + 14);
-          labelY += lineHeight;
         }
       }
     }
@@ -995,40 +1063,65 @@ var MouselabMDPSetup = (() => {
         mdpInstance.draw(tObj.edgeLabel);
         result.items.push(tObj.edgeLabel);
       } else {
-        const ilx = lx + indent;
-        tObj.actionLabel.set({
-          left: ilx,
-          top: ly,
-          originY: "center"
-        });
-        tObj.key.set({
-          left: ilx + tObj.actionLabel.width + pad,
-          top: ly,
-          originY: "center"
-        });
-        tObj.prob.set({
-          left: ilx + tObj.actionLabel.width + pad + tObj.key.width + pad,
-          top: ly,
-          originY: "center"
-        });
-        if (tObj.reward) {
-          tObj.reward.set({
-            left: ilx + tObj.actionLabel.width + pad + tObj.key.width + pad + tObj.prob.width + pad,
+        if (tObj.actionLabel) {
+          const ilx = lx + indent;
+          tObj.actionLabel.set({
+            left: ilx,
             top: ly,
             originY: "center"
           });
+          tObj.key.set({
+            left: ilx + tObj.actionLabel.width + pad,
+            top: ly,
+            originY: "center"
+          });
+          tObj.prob.set({
+            left: ilx + tObj.actionLabel.width + pad + tObj.key.width + pad,
+            top: ly,
+            originY: "center"
+          });
+          if (tObj.reward) {
+            tObj.reward.set({
+              left: ilx + tObj.actionLabel.width + pad + tObj.key.width + pad + tObj.prob.width + pad,
+              top: ly,
+              originY: "center"
+            });
+          }
+          if (ctx.edgeDisplay !== "always") {
+            tObj.actionLabel.opacity = 0;
+            tObj.key.opacity = 0;
+            tObj.prob.opacity = 0;
+            if (tObj.reward) tObj.reward.opacity = 0;
+          }
+          mdpInstance.draw(tObj.actionLabel);
+          result.items.push(tObj.actionLabel);
+        } else {
+          tObj.key.set({
+            left: lx,
+            top: ly,
+            originY: "center"
+          });
+          tObj.prob.set({
+            left: lx + tObj.key.width + pad + 4,
+            top: ly,
+            originY: "center"
+          });
+          if (tObj.reward) {
+            tObj.reward.set({
+              left: lx + tObj.key.width + pad + tObj.prob.width + pad + 4,
+              top: ly,
+              originY: "center"
+            });
+          }
+          if (ctx.edgeDisplay !== "always") {
+            tObj.key.opacity = 0;
+            tObj.prob.opacity = 0;
+            if (tObj.reward) tObj.reward.opacity = 0;
+          }
         }
-        if (ctx.edgeDisplay !== "always") {
-          tObj.actionLabel.opacity = 0;
-          tObj.key.opacity = 0;
-          tObj.prob.opacity = 0;
-          if (tObj.reward) tObj.reward.opacity = 0;
-        }
-        mdpInstance.draw(tObj.actionLabel);
         mdpInstance.draw(tObj.key);
         mdpInstance.draw(tObj.prob);
         if (tObj.reward) mdpInstance.draw(tObj.reward);
-        result.items.push(tObj.actionLabel);
         result.items.push(tObj.key);
         result.items.push(tObj.prob);
         if (tObj.reward) result.items.push(tObj.reward);
@@ -1043,7 +1136,7 @@ var MouselabMDPSetup = (() => {
       this.children = children;
       this.allActions = config.allActions || {};
       this.edgeDisplay = config.edgeDisplay != null ? config.edgeDisplay : "hover";
-      this.SIZE = config.SIZE || SIZE;
+      this.SIZE = config.SIZE || CONFIG.SIZE;
       this.edgeLabels = config.edgeLabels || null;
       this.groupLabels = config.groupLabels || {};
       this.actionLabels = config.actionLabels || {};
@@ -1059,6 +1152,7 @@ var MouselabMDPSetup = (() => {
       this.objectCaching = false;
       this.mdpInstance = null;
       this.hoveredIndex = null;
+      this.clickedIndices = /* @__PURE__ */ new Set();
     }
     _labelsContext() {
       return {
@@ -1094,7 +1188,7 @@ var MouselabMDPSetup = (() => {
       }
     }
     attach(mdpInstance) {
-      const radiusGap = 8;
+      const radiusGap = CONFIG.BRANCH_RADIUS_GAP;
       const stemStart = this.parent.left + this.parent.radius + radiusGap;
       const stemStartY = this.parent.top;
       this.stemStart = { left: stemStart, top: stemStartY };
@@ -1112,10 +1206,10 @@ var MouselabMDPSetup = (() => {
       this.stemLine = new fabric.Line(
         [stemStart, stemStartY, branchX, branchY],
         {
-          stroke: CONFIG2.DEFAULT_EDGE_COLOR,
+          stroke: CONFIG.DEFAULT_EDGE_COLOR,
           selectable: false,
           evented: false,
-          strokeWidth: CONFIG2.STEM_WIDTH,
+          strokeWidth: CONFIG.STEM_WIDTH,
           strokeLineCap: "round"
         }
       );
@@ -1123,8 +1217,8 @@ var MouselabMDPSetup = (() => {
       const arrowPositions = [];
       for (let i = 0; i < this.children.length; i++) {
         const childState = this.children[i];
-        const midX = branchX + 0.55 * (childState.left - branchX);
-        const midY = branchY + 0.55 * (childState.top - branchY);
+        const midX = branchX + CONFIG.BRANCH_ARROW_POSITION_RATIO * (childState.left - branchX);
+        const midY = branchY + CONFIG.BRANCH_ARROW_POSITION_RATIO * (childState.top - branchY);
         const arrow = new Arrow(
           branchX,
           branchY,
@@ -1132,8 +1226,8 @@ var MouselabMDPSetup = (() => {
           childState.top,
           0,
           childState.radius + radiusGap,
-          CONFIG2.DEFAULT_EDGE_COLOR,
-          CONFIG2.EDGE_WIDTH
+          CONFIG.DEFAULT_EDGE_COLOR,
+          CONFIG.EDGE_WIDTH
         );
         arrow.set({
           selectable: false,
@@ -1155,7 +1249,7 @@ var MouselabMDPSetup = (() => {
           left: branchX,
           top: branchY,
           width: Math.hypot(dx, dy),
-          height: CONFIG2.EDGE_WIDTH + 15,
+          height: CONFIG.EDGE_WIDTH + 15,
           originX: "left",
           originY: "center",
           angle: Math.atan2(dy, dx) * 180 / Math.PI,
@@ -1239,19 +1333,12 @@ var MouselabMDPSetup = (() => {
       });
       hitBox.on("mousedown", () => {
         if (self.edgeDisplay !== "click") return;
-        if (self.hoveredIndex != null && self.hoveredIndex !== index) {
-          for (let k = 0; k < self.labels.length; k++) {
-            if (k === self.hoveredIndex) {
-              self._setLabelVisibility(self.labels[k], false);
-            }
-          }
-        }
-        const already = self.hoveredIndex === index;
-        self.hoveredIndex = already ? null : index;
-        for (let k = 0; k < self.labels.length; k++) {
-          self._setLabelVisibility(self.labels[k], k === self.hoveredIndex);
-        }
-        if (!already) {
+        if (self.clickedIndices.has(index)) {
+          self.clickedIndices.delete(index);
+          self._setLabelVisibility(labelObj, false);
+        } else {
+          self.clickedIndices.add(index);
+          self._setLabelVisibility(labelObj, true);
           mdpInstance.addScore(-mdpInstance.edgeClickCost);
         }
         mdpInstance.recordQuery(
@@ -1267,19 +1354,19 @@ var MouselabMDPSetup = (() => {
       if (line._objects && line._objects[0]) {
         line._savedWidth = line._objects[0].strokeWidth;
         if (on) {
-          line._objects[0].set({ strokeWidth: CONFIG2.HOVER_EDGE_WIDTH });
+          line._objects[0].set({ strokeWidth: CONFIG.HOVER_EDGE_WIDTH });
           if (line._objects[1]) {
             line._savedHeadSize = line._objects[1].width;
             line._objects[1].set({
-              width: CONFIG2.ARROW_HEAD_SIZE + 6,
-              height: CONFIG2.ARROW_HEAD_SIZE + 6
+              width: CONFIG.ARROW_HEAD_SIZE + 6,
+              height: CONFIG.ARROW_HEAD_SIZE + 6
             });
           }
         }
       } else if (line.set) {
         line._savedWidth = line.strokeWidth;
         if (on) {
-          line.set({ strokeWidth: CONFIG2.HOVER_EDGE_WIDTH });
+          line.set({ strokeWidth: CONFIG.HOVER_EDGE_WIDTH });
         }
       }
       line.dirty = true;
@@ -1288,16 +1375,16 @@ var MouselabMDPSetup = (() => {
       if (!line) return;
       if (line._objects && line._objects[0]) {
         line._objects[0].set({
-          strokeWidth: line._savedWidth || CONFIG2.EDGE_WIDTH
+          strokeWidth: line._savedWidth || CONFIG.EDGE_WIDTH
         });
         if (line._objects[1]) {
           line._objects[1].set({
-            width: line._savedHeadSize || CONFIG2.ARROW_HEAD_SIZE,
-            height: line._savedHeadSize || CONFIG2.ARROW_HEAD_SIZE
+            width: line._savedHeadSize || CONFIG.ARROW_HEAD_SIZE,
+            height: line._savedHeadSize || CONFIG.ARROW_HEAD_SIZE
           });
         }
       } else if (line.set) {
-        line.set({ strokeWidth: line._savedWidth || CONFIG2.STEM_WIDTH });
+        line.set({ strokeWidth: line._savedWidth || CONFIG.STEM_WIDTH });
       }
       line.dirty = true;
     }
@@ -1346,7 +1433,7 @@ var MouselabMDPSetup = (() => {
     LOG_DEBUG("initPlayer");
     const top = this.nodes[this.initial].top;
     const left = this.nodes[this.initial].left;
-    const scale = this.playerImageScale != null ? this.playerImageScale : 0.3;
+    const scale = this.playerImageScale != null ? this.playerImageScale : CONFIG.PLAYER_SCALE_DEFAULT;
     img.scale(scale);
     img.set("top", top).set("left", left);
     this.draw(img);
@@ -1377,13 +1464,15 @@ var MouselabMDPSetup = (() => {
       const y = location[1];
       let alwaysLabel = "";
       const rv = this.nodeRewards[s];
-      if (this.nodeDisplay === "always") {
-        const lp = [];
+      if (this.nodeDisplay === "always" && (rv != null || this.nodeLabels && this.nodeLabels[s] != null)) {
+        const parts = [];
         if (this.nodeLabels && this.nodeLabels[s] != null) {
-          lp.push(this.nodeLabels[s]);
+          parts.push(this.nodeLabels[s]);
         }
-        lp.push("$" + (rv != null ? rv : 0));
-        alwaysLabel = lp.join("  ");
+        if (rv != null) {
+          parts.push(String(rv));
+        }
+        alwaysLabel = parts.join("  ");
       }
       this.nodes[s] = this.draw(
         new Node(s, x, y, {
@@ -1427,11 +1516,15 @@ var MouselabMDPSetup = (() => {
           const outcome = edge.outcomes[0];
           const reward = outcome.reward;
           const s1 = outcome.target;
+          let label = "";
+          if (this.edgeDisplay === "always" && this.edgeLabels != null) {
+            label = this.getEdgeLabel(s0, a, reward);
+          }
           this.draw(
             new Edge(this.nodes[s0], reward, this.nodes[s1], {
               s0,
               actionName: a,
-              label: this.edgeDisplay === "always" ? this.getEdgeLabel(s0, a, reward) : "",
+              label,
               SIZE: this.SIZE,
               mdpInstance: this
             })
@@ -1463,18 +1556,22 @@ var MouselabMDPSetup = (() => {
     this.pendingTrail = null;
   };
   MouselabMDP.prototype._updateMessages = function(c) {
-    const leftMessage = c.leftMessage != null ? c.leftMessage : "Round: 1/1";
-    const centerMessage = c.centerMessage != null ? c.centerMessage : "&nbsp;";
-    const rightMessage = c.rightMessage != null ? c.rightMessage : "Score: <span id=mouselab-score/>";
-    const lowerMessage = c.lowerMessage != null ? c.lowerMessage : KEY_DESCRIPTION;
-    $("#mouselab-msg-left").html(leftMessage);
-    $("#mouselab-msg-center").html(centerMessage);
-    $("#mouselab-msg-right").html(rightMessage);
-    $("#mouselab-msg-bottom").html(lowerMessage);
-    this.leftMessage = $("#mouselab-msg-left");
-    this.centerMessage = $("#mouselab-msg-center");
-    this.rightMessage = $("#mouselab-msg-right");
-    this.lowerMessage = $("#mouselab-msg-bottom");
+    if (c.leftMessage != null) {
+      $("#mouselab-msg-left").html(c.leftMessage);
+      this.leftMessage = $("#mouselab-msg-left");
+    }
+    if (c.centerMessage != null) {
+      $("#mouselab-msg-center").html(c.centerMessage);
+      this.centerMessage = $("#mouselab-msg-center");
+    }
+    if (c.rightMessage != null) {
+      $("#mouselab-msg-right").html(c.rightMessage);
+      this.rightMessage = $("#mouselab-msg-right");
+    }
+    if (c.lowerMessage != null) {
+      $("#mouselab-msg-bottom").html(c.lowerMessage);
+      this.lowerMessage = $("#mouselab-msg-bottom");
+    }
     this.canvasElement = $("#mouselab-canvas");
   };
   MouselabMDP.prototype.reload = function(config) {
@@ -1497,7 +1594,9 @@ var MouselabMDPSetup = (() => {
   };
   MouselabMDP.prototype.endTrial = function() {
     try {
-      this.lowerMessage.html("<b>Press any key to continue.</br>");
+      if (this.lowerMessage) {
+        this.lowerMessage.html("<b>" + this.completionMessage + "</br>");
+      }
       const self = this;
       this.keyListener = jsPsych.pluginAPI.getKeyboardResponse({
         valid_responses: [],
@@ -1523,7 +1622,7 @@ var MouselabMDPSetup = (() => {
   var instance = null;
   var plugin = {
     trial: function(display_element, trialConfig) {
-      trialConfig = jsPsych.pluginAPI.evaluateFunctionParameters(trialConfig);
+      trialConfig = jsPsych.pluginAPI.evaluateFunctionParameters(trialConfig, ["scoreFormat"]);
       trialConfig.display = display_element;
       trialConfig.timing_post_trial = 0;
       if (!instance) {

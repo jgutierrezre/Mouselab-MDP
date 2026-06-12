@@ -1,4 +1,4 @@
-import { LOG_INFO, KEYS, KEY_DESCRIPTION, TRIAL_INDEX, checkObj } from "./utils";
+import { LOG_INFO, KEYS, TRIAL_INDEX, checkObj } from "./utils";
 import type { TrialConfig, EdgeData, TrialData, PendingTrail } from "../types/types";
 
 const DEFAULT_SIZE = 120;
@@ -32,6 +32,8 @@ export class MouselabMDP {
   ANIMATION_SPEED!: number;
   groupLabels!: Record<string, string>;
   actionLabels!: Record<string, string>;
+  completionMessage!: string;
+  scoreFormat!: ((score: number) => string) | null;
 
   edgeViews: Record<string, Record<string, any>> = {};
   nodes: Record<string, any> = {};
@@ -56,35 +58,37 @@ export class MouselabMDP {
   }
 
   initDOM(c: TrialConfig): void {
-    const leftMessage = c.leftMessage != null ? c.leftMessage : "Round: 1/1";
-    const centerMessage = c.centerMessage != null ? c.centerMessage : "&nbsp;";
-    const rightMessage =
-      c.rightMessage != null ? c.rightMessage : 'Score: <span id=mouselab-score/>';
-    const lowerMessage = c.lowerMessage != null ? c.lowerMessage : KEY_DESCRIPTION;
-
-    this.leftMessage = $("<div>", {
-      id: "mouselab-msg-left",
-      class: "mouselab-header",
-      html: leftMessage,
-    } as any).appendTo(this.display);
-    this.centerMessage = $("<div>", {
-      id: "mouselab-msg-center",
-      class: "mouselab-header",
-      html: centerMessage,
-    } as any).appendTo(this.display);
-    this.rightMessage = $("<div>", {
-      id: "mouselab-msg-right",
-      class: "mouselab-header",
-      html: rightMessage,
-    } as any).appendTo(this.display);
+    if (c.leftMessage != null) {
+      this.leftMessage = $("<div>", {
+        id: "mouselab-msg-left",
+        class: "mouselab-header",
+        html: c.leftMessage,
+      } as any).appendTo(this.display);
+    }
+    if (c.centerMessage != null) {
+      this.centerMessage = $("<div>", {
+        id: "mouselab-msg-center",
+        class: "mouselab-header",
+        html: c.centerMessage,
+      } as any).appendTo(this.display);
+    }
+    if (c.rightMessage != null) {
+      this.rightMessage = $("<div>", {
+        id: "mouselab-msg-right",
+        class: "mouselab-header",
+        html: c.rightMessage,
+      } as any).appendTo(this.display);
+    }
     (this as any).addScore(0);
     this.canvasElement = $("<canvas>", { id: "mouselab-canvas" })
       .attr({ width: 500, height: 500 })
       .appendTo(this.display);
-    this.lowerMessage = $("<div>", {
-      id: "mouselab-msg-bottom",
-      html: lowerMessage || "&nbsp",
-    } as any).appendTo(this.display);
+    if (c.lowerMessage != null) {
+      this.lowerMessage = $("<div>", {
+        id: "mouselab-msg-bottom",
+        html: c.lowerMessage,
+      } as any).appendTo(this.display);
+    }
   }
 
   initConfig(c: TrialConfig): void {
@@ -94,7 +98,7 @@ export class MouselabMDP {
     this.nodeLabels = c.nodeLabels != null ? c.nodeLabels : null;
     this.nodeDisplay = c.nodeDisplay || "never";
     this.nodeClickCost = c.nodeClickCost != null ? c.nodeClickCost : 0;
-    this.edgeLabels = c.edgeLabels != null ? c.edgeLabels : "reward";
+    this.edgeLabels = c.edgeLabels != null ? c.edgeLabels : null;
     this.edgeDisplay = c.edgeDisplay || "always";
     this.edgeClickCost = c.edgeClickCost != null ? c.edgeClickCost : 0;
     this.keys = c.keys != null ? c.keys : KEYS;
@@ -106,6 +110,10 @@ export class MouselabMDP {
     this.nodeRewards = c.nodeRewards != null ? c.nodeRewards : {};
     this.groupLabels = c.groupLabels != null ? c.groupLabels : {};
     this.actionLabels = c.actionLabels != null ? c.actionLabels : {};
+    this.completionMessage = c.completionMessage != null
+      ? c.completionMessage
+      : "Press any key to continue.";
+    this.scoreFormat = c.scoreFormat != null ? c.scoreFormat : null;
 
     this.invKeys = _.invert(this.keys as any) as unknown as Record<string, string>;
     this.data = {

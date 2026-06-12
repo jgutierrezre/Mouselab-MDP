@@ -54,7 +54,7 @@ export function buildArrowLabels(
   let labelY = 0;
   let gl: fabric.Text | null = null;
 
-  const groupLabel = ctx.groupLabels[ctx.parentName] || ctx.parentName;
+  const groupLabel = ctx.groupLabels[ctx.parentName];
   if (groupLabel != null) {
     gl = new fabric.Text(groupLabel, {
       fontSize: fontSize + 2,
@@ -73,23 +73,24 @@ export function buildArrowLabels(
 
   const eid = ctx.parentName + "_" + edgeIdx;
   const showEdgeLabel =
-    (ctx.edgeLabels && (ctx.edgeLabels as Record<string, string>)[eid]) ||
-    "edge_" + edgeIdx;
+    ctx.edgeLabels && (ctx.edgeLabels as Record<string, string>)[eid];
 
-  const edgeLabelText = new fabric.Text(showEdgeLabel, {
-    fontSize: fontSize,
-    fill: "#555",
-    fontFamily: "helvetica",
-    fontWeight: "bold",
-    originX: "left",
-    originY: "top",
-    selectable: false,
-    evented: false,
-  });
-  edgeLabelText.objectCaching = false;
-  texts.push({ type: "edge", edgeLabel: edgeLabelText, y: labelY });
-  maxLabelWidth = Math.max(maxLabelWidth, edgeLabelText.width + 14);
-  labelY += lineHeight;
+  if (showEdgeLabel != null) {
+    const edgeLabelText = new fabric.Text(showEdgeLabel, {
+      fontSize: fontSize,
+      fill: "#555",
+      fontFamily: "helvetica",
+      fontWeight: "bold",
+      originX: "left",
+      originY: "top",
+      selectable: false,
+      evented: false,
+    });
+    edgeLabelText.objectCaching = false;
+    texts.push({ type: "edge", edgeLabel: edgeLabelText, y: labelY });
+    maxLabelWidth = Math.max(maxLabelWidth, edgeLabelText.width + 14);
+    labelY += lineHeight;
+  }
 
   for (const actionName in ctx.allActions) {
     const allOutcomes = ctx.allActions[actionName].outcomes;
@@ -101,19 +102,7 @@ export function buildArrowLabels(
 
         const actionEid = eid + "_" + actionName;
         const actionLabel =
-          (ctx.actionLabels && ctx.actionLabels[actionEid]) ||
-          "action_" + actionName + "_edge_" + edgeIdx;
-
-        const actionLabelText = new fabric.Text(actionLabel, {
-          fontSize: fontSize,
-          fill: "#333",
-          fontFamily: "helvetica",
-          originX: "left",
-          originY: "top",
-          selectable: false,
-          evented: false,
-        });
-        actionLabelText.objectCaching = false;
+          ctx.actionLabels && ctx.actionLabels[actionEid];
 
         const keyText = new fabric.Text(actionName, {
           fontSize: fontSize,
@@ -127,7 +116,7 @@ export function buildArrowLabels(
         });
         keyText.objectCaching = false;
 
-        const probText = new fabric.Text(" " + prob + "%", {
+        const probText = new fabric.Text(prob + "%", {
           fontSize: fontSize,
           fill: "#333",
           fontFamily: "helvetica",
@@ -138,34 +127,75 @@ export function buildArrowLabels(
         });
         probText.objectCaching = false;
 
-        let lineWidth =
-          indent + actionLabelText.width + pad + keyText.width + pad + probText.width;
-
-        const actionItem: ArrowLineItem = {
-          type: "line",
-          actionLabel: actionLabelText,
-          key: keyText,
-          prob: probText,
-          y: labelY,
-        };
-
-        if (reward != null) {
-          const rewardText = new fabric.Text(" $" + reward, {
+        let lineWidth: number;
+        if (actionLabel) {
+          const actionLabelText = new fabric.Text(actionLabel, {
             fontSize: fontSize,
-            fill: redGreen(reward),
+            fill: "#333",
             fontFamily: "helvetica",
             originX: "left",
             originY: "top",
             selectable: false,
             evented: false,
           });
-          rewardText.objectCaching = false;
-          actionItem.reward = rewardText;
-          lineWidth += pad + rewardText.width;
+          actionLabelText.objectCaching = false;
+          lineWidth =
+            indent + actionLabelText.width + pad + keyText.width + pad + probText.width;
+
+          const actionItem: ArrowLineItem = {
+            type: "line",
+            actionLabel: actionLabelText,
+            key: keyText,
+            prob: probText,
+            y: labelY,
+          };
+
+          if (reward != null) {
+            const rewardText = new fabric.Text(String(reward), {
+              fontSize: fontSize,
+              fill: redGreen(reward),
+              fontFamily: "helvetica",
+              originX: "left",
+              originY: "top",
+              selectable: false,
+              evented: false,
+            });
+            rewardText.objectCaching = false;
+            actionItem.reward = rewardText;
+            lineWidth += pad + rewardText.width;
+          }
+          texts.push(actionItem);
+          maxLabelWidth = Math.max(maxLabelWidth, lineWidth + 14);
+          labelY += lineHeight;
+        } else {
+          lineWidth = keyText.width + pad + probText.width;
+
+          const keyOnlyItem: ArrowLineItem = {
+            type: "line",
+            actionLabel: null as any,
+            key: keyText,
+            prob: probText,
+            y: labelY,
+          };
+
+          if (reward != null) {
+            const rewardText = new fabric.Text(String(reward), {
+              fontSize: fontSize,
+              fill: redGreen(reward),
+              fontFamily: "helvetica",
+              originX: "left",
+              originY: "top",
+              selectable: false,
+              evented: false,
+            });
+            rewardText.objectCaching = false;
+            keyOnlyItem.reward = rewardText;
+            lineWidth += pad + rewardText.width;
+          }
+          texts.push(keyOnlyItem);
+          maxLabelWidth = Math.max(maxLabelWidth, lineWidth + 14);
+          labelY += lineHeight;
         }
-        texts.push(actionItem);
-        maxLabelWidth = Math.max(maxLabelWidth, lineWidth + 14);
-        labelY += lineHeight;
       }
     }
   }
@@ -227,47 +257,73 @@ export function buildArrowLabels(
       mdpInstance.draw(tObj.edgeLabel);
       result.items.push(tObj.edgeLabel);
     } else {
-      const ilx = lx + indent;
-      tObj.actionLabel.set({
-        left: ilx,
-        top: ly,
-        originY: "center",
-      } as any);
-      tObj.key.set({
-        left: ilx + tObj.actionLabel.width + pad,
-        top: ly,
-        originY: "center",
-      } as any);
-      tObj.prob.set({
-        left: ilx + tObj.actionLabel.width + pad + tObj.key.width + pad,
-        top: ly,
-        originY: "center",
-      } as any);
-      if (tObj.reward) {
-        tObj.reward.set({
-          left:
-            ilx +
-            tObj.actionLabel.width +
-            pad +
-            tObj.key.width +
-            pad +
-            tObj.prob.width +
-            pad,
+      if (tObj.actionLabel) {
+        const ilx = lx + indent;
+        tObj.actionLabel.set({
+          left: ilx,
           top: ly,
           originY: "center",
         } as any);
+        tObj.key.set({
+          left: ilx + tObj.actionLabel.width + pad,
+          top: ly,
+          originY: "center",
+        } as any);
+        tObj.prob.set({
+          left: ilx + tObj.actionLabel.width + pad + tObj.key.width + pad,
+          top: ly,
+          originY: "center",
+        } as any);
+        if (tObj.reward) {
+          tObj.reward.set({
+            left:
+              ilx +
+              tObj.actionLabel.width +
+              pad +
+              tObj.key.width +
+              pad +
+              tObj.prob.width +
+              pad,
+            top: ly,
+            originY: "center",
+          } as any);
+        }
+        if (ctx.edgeDisplay !== "always") {
+          tObj.actionLabel.opacity = 0;
+          tObj.key.opacity = 0;
+          tObj.prob.opacity = 0;
+          if (tObj.reward) tObj.reward.opacity = 0;
+        }
+        mdpInstance.draw(tObj.actionLabel);
+        result.items.push(tObj.actionLabel);
+      } else {
+        tObj.key.set({
+          left: lx,
+          top: ly,
+          originY: "center",
+        } as any);
+        tObj.prob.set({
+          left: lx + tObj.key.width + pad + 4,
+          top: ly,
+          originY: "center",
+        } as any);
+        if (tObj.reward) {
+          tObj.reward.set({
+            left:
+              lx + tObj.key.width + pad + tObj.prob.width + pad + 4,
+            top: ly,
+            originY: "center",
+          } as any);
+        }
+        if (ctx.edgeDisplay !== "always") {
+          tObj.key.opacity = 0;
+          tObj.prob.opacity = 0;
+          if (tObj.reward) tObj.reward.opacity = 0;
+        }
       }
-      if (ctx.edgeDisplay !== "always") {
-        tObj.actionLabel.opacity = 0;
-        tObj.key.opacity = 0;
-        tObj.prob.opacity = 0;
-        if (tObj.reward) tObj.reward.opacity = 0;
-      }
-      mdpInstance.draw(tObj.actionLabel);
       mdpInstance.draw(tObj.key);
       mdpInstance.draw(tObj.prob);
       if (tObj.reward) mdpInstance.draw(tObj.reward);
-      result.items.push(tObj.actionLabel);
       result.items.push(tObj.key);
       result.items.push(tObj.prob);
       if (tObj.reward) result.items.push(tObj.reward);

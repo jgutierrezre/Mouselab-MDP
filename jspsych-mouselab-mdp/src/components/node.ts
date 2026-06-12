@@ -1,8 +1,7 @@
 import { Text } from "./text";
 import { IMouselabMDP } from "./interfaces";
 import { redGreen } from "../core/utils";
-
-const DEFAULT_SIZE = 120;
+import { CONFIG } from "../core/config";
 
 export class Node extends fabric.Group {
   name: string;
@@ -26,19 +25,19 @@ export class Node extends fabric.Group {
       mdpInstance: IMouselabMDP;
     }
   ) {
-    const cellSize = config.SIZE || DEFAULT_SIZE;
+    const cellSize = config.SIZE || CONFIG.SIZE;
     const mdpInstance = config.mdpInstance;
     const rewardVal = config.reward != null ? config.reward : null;
 
     const px = (left + 0.5) * cellSize;
     const py = (top + 0.5) * cellSize;
-    const lineHeight = cellSize / 5;
+    const lineHeight = cellSize * CONFIG.NODE_LINE_HEIGHT_RATIO;
 
     const conf: any = {
       left: px,
       top: py,
-      fill: "#bbbbbb",
-      radius: cellSize / 4,
+      fill: CONFIG.NODE_DEFAULT_FILL,
+      radius: cellSize * CONFIG.NODE_RADIUS_RATIO,
       label: "",
     };
     _.extend(conf, config);
@@ -49,10 +48,10 @@ export class Node extends fabric.Group {
       top: py,
       width: 0,
       height: 0,
-      rx: 4,
-      ry: 4,
+      rx: CONFIG.NODE_LABEL_BG_RADIUS,
+      ry: CONFIG.NODE_LABEL_BG_RADIUS,
       fill: "white",
-      stroke: "#444",
+      stroke: CONFIG.NODE_LABEL_BG_STROKE,
       strokeWidth: 1,
       selectable: false,
       evented: false,
@@ -62,15 +61,15 @@ export class Node extends fabric.Group {
     });
     labelBg.objectCaching = false;
 
-    const fs = cellSize / 6;
+    const fs = cellSize * CONFIG.NODE_FONT_SIZE_RATIO;
     const label = new Text("", px, py - lineHeight / 2, {
       fontSize: fs,
-      fill: "#222",
+      fill: CONFIG.NODE_LABEL_TEXT_FILL,
       fontWeight: "bold",
     });
     const rewardText = new Text("", px, py + lineHeight / 2, {
       fontSize: fs,
-      fill: "#888",
+      fill: CONFIG.NODE_REWARD_TEXT_FILL,
     });
 
     const radius = circle.radius;
@@ -110,10 +109,10 @@ export class Node extends fabric.Group {
     if (txt) {
       const parts = txt.split("  ");
       this.label.setText(parts[0] || "");
-      const rewardStr = parts[1] || "$" + (r != null ? r : 0);
+      const rewardStr = parts[1] || (r != null ? String(r) : "");
       this.rewardText.setText(rewardStr);
       this.rewardText.setFill(
-        r != null ? redGreen(r) : redGreen(rewardStr)
+        r != null ? redGreen(r) : "#888"
       );
       this.dirty = true;
 
@@ -124,8 +123,8 @@ export class Node extends fabric.Group {
         (this.rewardText.text ? lineH : 0);
 
       this.labelBg.set({
-        width: maxW + 8,
-        height: totalH + 4,
+        width: maxW + CONFIG.NODE_LABEL_PADDING_X,
+        height: totalH + CONFIG.NODE_LABEL_PADDING_Y,
       });
       this.labelBg.opacity = 1;
       this.labelBg.dirty = true;

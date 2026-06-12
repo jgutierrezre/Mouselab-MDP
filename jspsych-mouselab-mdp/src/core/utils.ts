@@ -8,8 +8,6 @@ export function incrementTrialIndex(): number {
 
 export const SIZE = 120;
 
-export const KEY_DESCRIPTION = "Navigate with the arrow keys.";
-
 export function PRINT(...args: unknown[]): void {
   if (!DEBUG_MODE) return;
   console.log.apply(console, args);
@@ -66,7 +64,13 @@ export function dist(
 }
 
 export function redGreen(val: number | string): string {
-  const n = typeof val === "string" ? parseFloat(val.replace("$", "")) : val;
+  if (typeof val === "number") {
+    if (val > 0) return "#080";
+    if (val < 0) return "#b00";
+    return "#888";
+  }
+  const n = parseFloat(String(val));
+  if (isNaN(n)) return "#888";
   if (n > 0) return "#080";
   if (n < 0) return "#b00";
   return "#888";

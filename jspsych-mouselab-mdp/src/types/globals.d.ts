@@ -220,7 +220,7 @@ declare namespace fabric {
 
 // ---- jsPsych ----------------------------------------------------------------
 interface JsPsychPluginAPI {
-  evaluateFunctionParameters(obj: any): any;
+  evaluateFunctionParameters(obj: any, protect?: string[]): any;
   convertKeyCharacterToKeyCode(char: string): number;
   getKeyboardResponse(options: KeyboardResponseOptions): KeyboardListener;
   cancelKeyboardResponse(listener: KeyboardListener): void;

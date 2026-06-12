@@ -9,7 +9,10 @@ interface QueryRecord {
 
 (MouselabMDP.prototype as any).addScore = function (this: MouselabMDP, v: number): void {
   this.data.score = round(this.data.score + v);
-  $("#mouselab-score").html("$" + this.data.score);
+  const displayScore = this.scoreFormat
+    ? this.scoreFormat(this.data.score)
+    : String(this.data.score);
+  $("#mouselab-score").html(displayScore);
   $("#mouselab-score").css("color", redGreen(this.data.score));
 };
 
@@ -29,9 +32,11 @@ interface QueryRecord {
 ): string {
   const eid = s0 + "_" + actionName;
   const edgeLabel =
-    (this.edgeLabels && (this.edgeLabels as Record<string, string>)[eid]) || eid;
-  const parts: string[] = [edgeLabel, actionName];
-  if (r != null) parts.push("$" + r);
+    this.edgeLabels && (this.edgeLabels as Record<string, string>)[eid];
+  const parts: string[] = [];
+  if (edgeLabel) parts.push(edgeLabel);
+  parts.push(actionName);
+  if (r != null) parts.push(String(r));
   return parts.join("  ");
 };
 

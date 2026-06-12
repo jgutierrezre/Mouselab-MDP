@@ -1,8 +1,9 @@
 import { MouselabMDP } from "./mouselab-mdp";
-import { PRINT, LOG_DEBUG, KEY_DESCRIPTION } from "./utils";
+import { PRINT, LOG_DEBUG } from "./utils";
 import { Node } from "../components/node";
 import { Edge } from "../components/edge";
 import { SplitEdge } from "../components/split-edge";
+import { CONFIG } from "./config";
 import type { TrialConfig, EdgeData } from "../types/types";
 
 (MouselabMDP.prototype as any)._handleError = function (this: MouselabMDP, method: string, err: Error): void {
@@ -49,7 +50,7 @@ import type { TrialConfig, EdgeData } from "../types/types";
   LOG_DEBUG("initPlayer");
   const top = this.nodes[this.initial].top;
   const left = this.nodes[this.initial].left;
-  const scale = this.playerImageScale != null ? this.playerImageScale : 0.3;
+  const scale = this.playerImageScale != null ? this.playerImageScale : CONFIG.PLAYER_SCALE_DEFAULT;
   img.scale(scale);
   img.set("top", top).set("left", left);
   this.draw(img);
@@ -84,13 +85,15 @@ import type { TrialConfig, EdgeData } from "../types/types";
     const y = location[1];
     let alwaysLabel = "";
     const rv = this.nodeRewards[s];
-    if (this.nodeDisplay === "always") {
-      const lp: string[] = [];
+    if (this.nodeDisplay === "always" && (rv != null || (this.nodeLabels && this.nodeLabels[s] != null))) {
+      const parts: string[] = [];
       if (this.nodeLabels && this.nodeLabels[s] != null) {
-        lp.push(this.nodeLabels[s]);
+        parts.push(this.nodeLabels[s]);
       }
-      lp.push("$" + (rv != null ? rv : 0));
-      alwaysLabel = lp.join("  ");
+      if (rv != null) {
+        parts.push(String(rv));
+      }
+      alwaysLabel = parts.join("  ");
     }
     this.nodes[s] = this.draw(
       new Node(s, x, y, {
@@ -138,14 +141,15 @@ import type { TrialConfig, EdgeData } from "../types/types";
         const outcome = edge.outcomes[0];
         const reward = outcome.reward;
         const s1 = outcome.target;
+        let label = "";
+        if (this.edgeDisplay === "always" && this.edgeLabels != null) {
+          label = (this as any).getEdgeLabel(s0, a, reward);
+        }
         this.draw(
           new Edge(this.nodes[s0], reward, this.nodes[s1], {
             s0: s0,
             actionName: a,
-            label:
-              this.edgeDisplay === "always"
-                ? (this as any).getEdgeLabel(s0, a, reward)
-                : "",
+            label: label,
             SIZE: this.SIZE,
             mdpInstance: this as any,
           })
@@ -180,20 +184,22 @@ import type { TrialConfig, EdgeData } from "../types/types";
 };
 
 (MouselabMDP.prototype as any)._updateMessages = function (this: MouselabMDP, c: TrialConfig): void {
-  const leftMessage = c.leftMessage != null ? c.leftMessage : "Round: 1/1";
-  const centerMessage = c.centerMessage != null ? c.centerMessage : "&nbsp;";
-  const rightMessage =
-    c.rightMessage != null ? c.rightMessage : 'Score: <span id=mouselab-score/>';
-  const lowerMessage = c.lowerMessage != null ? c.lowerMessage : KEY_DESCRIPTION;
-
-  $("#mouselab-msg-left").html(leftMessage);
-  $("#mouselab-msg-center").html(centerMessage);
-  $("#mouselab-msg-right").html(rightMessage);
-  $("#mouselab-msg-bottom").html(lowerMessage);
-  this.leftMessage = $("#mouselab-msg-left");
-  this.centerMessage = $("#mouselab-msg-center");
-  this.rightMessage = $("#mouselab-msg-right");
-  this.lowerMessage = $("#mouselab-msg-bottom");
+  if (c.leftMessage != null) {
+    $("#mouselab-msg-left").html(c.leftMessage);
+    this.leftMessage = $("#mouselab-msg-left");
+  }
+  if (c.centerMessage != null) {
+    $("#mouselab-msg-center").html(c.centerMessage);
+    this.centerMessage = $("#mouselab-msg-center");
+  }
+  if (c.rightMessage != null) {
+    $("#mouselab-msg-right").html(c.rightMessage);
+    this.rightMessage = $("#mouselab-msg-right");
+  }
+  if (c.lowerMessage != null) {
+    $("#mouselab-msg-bottom").html(c.lowerMessage);
+    this.lowerMessage = $("#mouselab-msg-bottom");
+  }
   this.canvasElement = $("#mouselab-canvas");
 };
 
@@ -218,7 +224,9 @@ import type { TrialConfig, EdgeData } from "../types/types";
 
 (MouselabMDP.prototype as any).endTrial = function (this: MouselabMDP): void {
   try {
-    this.lowerMessage.html("<b>Press any key to continue.</br>");
+    if (this.lowerMessage) {
+      this.lowerMessage.html("<b>" + this.completionMessage + "</br>");
+    }
     const self = this;
     this.keyListener = jsPsych.pluginAPI.getKeyboardResponse({
       valid_responses: [],

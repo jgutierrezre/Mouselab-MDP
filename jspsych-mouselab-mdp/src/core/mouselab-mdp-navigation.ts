@@ -1,12 +1,7 @@
 import { MouselabMDP } from "./mouselab-mdp";
 import { PRINT, LOG_DEBUG, angle, polarMove, dist } from "./utils";
+import { CONFIG } from "./config";
 import type { EdgeData, TransitionInfo, TrailInfo, Waypoint, Segment } from "../types/types";
-
-const CONFIG = {
-  ACTION_COLORS: ["#2196F3", "#F44336", "#4CAF50", "#FF9800"],
-  TRAIL_COLOR: "#1565C0",
-  TRAIL_WIDTH: 5,
-};
 
 (MouselabMDP.prototype as any).handleKey = function (this: MouselabMDP, s0: string, a: string): void {
   try {
@@ -141,7 +136,7 @@ const CONFIG = {
       childNode.left,
       childNode.top,
       ang,
-      -(childNode.radius + nodeGap + 7.5)
+      -(childNode.radius + nodeGap + CONFIG.TRAIL_OFFSET)
     );
     const arrowEnd = { left: ae[0], top: ae[1] };
     const seg0dx = waypoints[1].left - waypoints[0].left;

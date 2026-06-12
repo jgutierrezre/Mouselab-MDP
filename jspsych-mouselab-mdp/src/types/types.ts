@@ -39,16 +39,19 @@ export interface TrialConfig {
   playerImage?: string;
   playerImageScale?: number;
 
-  leftMessage?: string;
-  centerMessage?: string;
-  rightMessage?: string;
-  lowerMessage?: string;
+  leftMessage?: string | null;
+  centerMessage?: string | null;
+  rightMessage?: string | null;
+  lowerMessage?: string | null;
+
+  completionMessage?: string;
+  scoreFormat?: (score: number) => string;
 
   SIZE?: number;
   ANIMATION_SPEED?: number;
 
-  groupLabels?: Record<string, string>;
-  actionLabels?: Record<string, string>;
+  groupLabels?: Record<string, string> | null;
+  actionLabels?: Record<string, string> | null;
 }
 
 export interface TrailInfo {
