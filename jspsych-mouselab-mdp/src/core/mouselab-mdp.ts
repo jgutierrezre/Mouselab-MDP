@@ -1,8 +1,6 @@
 import { LOG_INFO, KEYS, TRIAL_INDEX, checkObj } from "./utils";
+import { CONFIG } from "./config";
 import type { TrialConfig, EdgeData, TrialData, PendingTrail } from "../types/types";
-
-const DEFAULT_SIZE = 120;
-const DEFAULT_ANIMATION_SPEED = 0.5;
 
 export class MouselabMDP {
   display!: JQuery<HTMLElement>;
@@ -104,9 +102,10 @@ export class MouselabMDP {
     this.keys = c.keys != null ? c.keys : KEYS;
     this.trialIndex = c.trialIndex != null ? c.trialIndex : TRIAL_INDEX;
     this.playerImage = c.playerImage != null ? c.playerImage : "static/images/plane.png";
-    this.SIZE = c.SIZE != null ? c.SIZE : DEFAULT_SIZE;
+    this.playerImageScale = c.playerImageScale != null ? c.playerImageScale : CONFIG.PLAYER_SCALE_DEFAULT;
+    this.SIZE = c.SIZE != null ? c.SIZE : CONFIG.SIZE;
     this.ANIMATION_SPEED =
-      c.ANIMATION_SPEED != null ? c.ANIMATION_SPEED : DEFAULT_ANIMATION_SPEED;
+      c.ANIMATION_SPEED != null ? c.ANIMATION_SPEED : CONFIG.ANIMATION_SPEED;
     this.nodeRewards = c.nodeRewards != null ? c.nodeRewards : {};
     this.groupLabels = c.groupLabels != null ? c.groupLabels : {};
     this.actionLabels = c.actionLabels != null ? c.actionLabels : {};

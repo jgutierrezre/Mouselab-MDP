@@ -2,6 +2,8 @@
 "use strict";
 var MouselabMDPSetup = (() => {
   var __defProp = Object.defineProperty;
+  var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  var __getOwnPropNames = Object.getOwnPropertyNames;
   var __getOwnPropSymbols = Object.getOwnPropertySymbols;
   var __hasOwnProp = Object.prototype.hasOwnProperty;
   var __propIsEnum = Object.prototype.propertyIsEnumerable;
@@ -18,6 +20,25 @@ var MouselabMDPSetup = (() => {
       }
     return a;
   };
+  var __export = (target, all) => {
+    for (var name in all)
+      __defProp(target, name, { get: all[name], enumerable: true });
+  };
+  var __copyProps = (to, from, except, desc) => {
+    if (from && typeof from === "object" || typeof from === "function") {
+      for (let key of __getOwnPropNames(from))
+        if (!__hasOwnProp.call(to, key) && key !== except)
+          __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+    }
+    return to;
+  };
+  var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+  // jspsych-mouselab-mdp/src/index.ts
+  var index_exports = {};
+  __export(index_exports, {
+    MouselabMDP: () => MouselabMDP
+  });
 
   // jspsych-mouselab-mdp/src/core/utils.ts
   var DEBUG_MODE = false;
@@ -85,9 +106,49 @@ var MouselabMDPSetup = (() => {
     jsPsych.pluginAPI.convertKeyCharacterToKeyCode
   );
 
+  // jspsych-mouselab-mdp/src/core/config.ts
+  var CONFIG = {
+    ANIMATION_SPEED: 0.5,
+    SIZE: 120,
+    EDGE_WIDTH: 4,
+    HOVER_EDGE_WIDTH: 6,
+    ARROW_HEAD_SIZE: 10,
+    BRANCH_LABEL_FONT_SIZE: 12,
+    ACTION_COLORS: ["#2196F3", "#F44336", "#4CAF50", "#FF9800"],
+    DEFAULT_EDGE_COLOR: "#888",
+    TRAIL_COLOR: "#1565C0",
+    TRAIL_WIDTH: 5,
+    STEM_COLOR: "#888",
+    STEM_WIDTH: 4,
+    NODE_INTERACTION_MODE: null,
+    EDGE_INTERACTION_MODE: null,
+    DEBUG_SHOW_VALUES: false,
+    NODE_RADIUS_RATIO: 0.25,
+    NODE_FONT_SIZE_RATIO: 1 / 6,
+    NODE_LABEL_PADDING_X: 8,
+    NODE_LABEL_PADDING_Y: 4,
+    NODE_LINE_HEIGHT_RATIO: 0.2,
+    NODE_LABEL_BG_RADIUS: 4,
+    NODE_LABEL_BG_STROKE: "#444",
+    NODE_LABEL_TEXT_FILL: "#222",
+    NODE_REWARD_TEXT_FILL: "#888",
+    NODE_DEFAULT_FILL: "#bbb",
+    DEFAULT_EDGE_SPACING: 8,
+    EDGE_LABEL_OFFSET_RATIO: 0.45,
+    BRANCH_ARROW_POSITION_RATIO: 0.55,
+    BRANCH_RADIUS_GAP: 8,
+    BRANCH_LABEL_PADDING: 6,
+    BRANCH_LABEL_INDENT: 10,
+    BRANCH_GROUP_LABEL_SIZE_DELTA: 2,
+    BRANCH_RECT_PADDING: 8,
+    BRANCH_RECT_OFFSET_X: 7,
+    BRANCH_LABEL_BG_FILL: "white",
+    BRANCH_LABEL_BG_STROKE: "#444",
+    PLAYER_SCALE_DEFAULT: 0.3,
+    TRAIL_OFFSET: 7.5
+  };
+
   // jspsych-mouselab-mdp/src/core/mouselab-mdp.ts
-  var DEFAULT_SIZE = 120;
-  var DEFAULT_ANIMATION_SPEED = 0.5;
   var MouselabMDP = class {
     constructor(config) {
       this.edgeViews = {};
@@ -151,8 +212,9 @@ var MouselabMDPSetup = (() => {
       this.keys = c.keys != null ? c.keys : KEYS;
       this.trialIndex = c.trialIndex != null ? c.trialIndex : TRIAL_INDEX;
       this.playerImage = c.playerImage != null ? c.playerImage : "static/images/plane.png";
-      this.SIZE = c.SIZE != null ? c.SIZE : DEFAULT_SIZE;
-      this.ANIMATION_SPEED = c.ANIMATION_SPEED != null ? c.ANIMATION_SPEED : DEFAULT_ANIMATION_SPEED;
+      this.playerImageScale = c.playerImageScale != null ? c.playerImageScale : CONFIG.PLAYER_SCALE_DEFAULT;
+      this.SIZE = c.SIZE != null ? c.SIZE : CONFIG.SIZE;
+      this.ANIMATION_SPEED = c.ANIMATION_SPEED != null ? c.ANIMATION_SPEED : CONFIG.ANIMATION_SPEED;
       this.nodeRewards = c.nodeRewards != null ? c.nodeRewards : {};
       this.groupLabels = c.groupLabels != null ? c.groupLabels : {};
       this.actionLabels = c.actionLabels != null ? c.actionLabels : {};
@@ -283,48 +345,6 @@ var MouselabMDPSetup = (() => {
     return edge.outcomes && edge.outcomes.length > 1;
   };
 
-  // jspsych-mouselab-mdp/src/core/config.ts
-  var CONFIG = {
-    ANIMATION_SPEED: 0.5,
-    SIZE: 120,
-    EDGE_WIDTH: 4,
-    HOVER_EDGE_WIDTH: 6,
-    ARROW_HEAD_SIZE: 10,
-    BRANCH_LABEL_FONT_SIZE: 12,
-    ACTION_COLORS: ["#2196F3", "#F44336", "#4CAF50", "#FF9800"],
-    DEFAULT_EDGE_COLOR: "#888",
-    TRAIL_COLOR: "#1565C0",
-    TRAIL_WIDTH: 5,
-    STEM_COLOR: "#888",
-    STEM_WIDTH: 4,
-    NODE_INTERACTION_MODE: null,
-    EDGE_INTERACTION_MODE: null,
-    DEBUG_SHOW_VALUES: false,
-    NODE_RADIUS_RATIO: 0.25,
-    NODE_FONT_SIZE_RATIO: 1 / 6,
-    NODE_LABEL_PADDING_X: 8,
-    NODE_LABEL_PADDING_Y: 4,
-    NODE_LINE_HEIGHT_RATIO: 0.2,
-    NODE_LABEL_BG_RADIUS: 4,
-    NODE_LABEL_BG_STROKE: "#444",
-    NODE_LABEL_TEXT_FILL: "#222",
-    NODE_REWARD_TEXT_FILL: "#888",
-    NODE_DEFAULT_FILL: "#bbb",
-    DEFAULT_EDGE_SPACING: 8,
-    EDGE_LABEL_OFFSET_RATIO: 0.45,
-    BRANCH_ARROW_POSITION_RATIO: 0.55,
-    BRANCH_RADIUS_GAP: 8,
-    BRANCH_LABEL_PADDING: 6,
-    BRANCH_LABEL_INDENT: 10,
-    BRANCH_GROUP_LABEL_SIZE_DELTA: 2,
-    BRANCH_RECT_PADDING: 8,
-    BRANCH_RECT_OFFSET_X: 7,
-    BRANCH_LABEL_BG_FILL: "white",
-    BRANCH_LABEL_BG_STROKE: "#444",
-    PLAYER_SCALE_DEFAULT: 0.3,
-    TRAIL_OFFSET: 7.5
-  };
-
   // jspsych-mouselab-mdp/src/core/mouselab-mdp-navigation.ts
   MouselabMDP.prototype.handleKey = function(s0, a) {
     try {
@@ -359,6 +379,7 @@ var MouselabMDPSetup = (() => {
       this.animateMove(
         s1g,
         reward,
+        edgeView != null ? edgeView.stemStart : void 0,
         edgeView != null ? edgeView.branchPoint : void 0,
         s1
       );
@@ -398,15 +419,18 @@ var MouselabMDPSetup = (() => {
       outcomeIndex: outcomes.length - 1
     };
   };
-  MouselabMDP.prototype.animateMove = function(s1g, reward, via, finalState) {
+  MouselabMDP.prototype.animateMove = function(s1g, reward, stemStart, branchPoint, finalState) {
     if (!this.player) {
       PRINT("animateMove called without initialized player");
       this.arrive(finalState);
       return;
     }
     const waypoints = [{ left: this.player.left, top: this.player.top }];
-    if (via != null) {
-      waypoints.push(via);
+    if (stemStart != null) {
+      waypoints.push(stemStart);
+    }
+    if (branchPoint != null) {
+      waypoints.push(branchPoint);
     }
     waypoints.push({ left: s1g.left, top: s1g.top });
     const segments = [];
@@ -423,13 +447,14 @@ var MouselabMDPSetup = (() => {
     }
     let trailInfo = null;
     const pendingTrail = this.pendingTrail;
-    if (pendingTrail && waypoints.length >= 3) {
+    const hasEdge = stemStart && branchPoint && waypoints.length >= 4 && pendingTrail;
+    if (hasEdge) {
       const edgeView = pendingTrail.edgeView;
       const childNode = edgeView.children[pendingTrail.outcomeIndex];
       const nodeGap = edgeView.stemStart.left - edgeView.parent.left - edgeView.parent.radius;
       const ang = angle(
-        edgeView.branchPoint.left,
-        edgeView.branchPoint.top,
+        branchPoint.left,
+        branchPoint.top,
         childNode.left,
         childNode.top
       );
@@ -440,27 +465,23 @@ var MouselabMDPSetup = (() => {
         -(childNode.radius + nodeGap + CONFIG.TRAIL_OFFSET)
       );
       const arrowEnd = { left: ae[0], top: ae[1] };
-      const seg0dx = waypoints[1].left - waypoints[0].left;
-      const seg0dy = waypoints[1].top - waypoints[0].top;
-      const seg0Len = segments[0].dist;
-      const stemProj = ((edgeView.stemStart.left - waypoints[0].left) * seg0dx + (edgeView.stemStart.top - waypoints[0].top) * seg0dy) / seg0Len;
-      const stemOffset = Math.max(0, Math.min(seg0Len, stemProj));
-      const seg1dx = waypoints[2].left - waypoints[1].left;
-      const seg1dy = waypoints[2].top - waypoints[1].top;
       const seg1Len = segments[1].dist;
-      const arrowProj = ((arrowEnd.left - waypoints[1].left) * seg1dx + (arrowEnd.top - waypoints[1].top) * seg1dy) / seg1Len;
-      const arrowLen = Math.max(0, Math.min(seg1Len, arrowProj));
+      const seg2dx = waypoints[3].left - waypoints[2].left;
+      const seg2dy = waypoints[3].top - waypoints[2].top;
+      const seg2Len = segments[2].dist;
+      const arrowProj = ((arrowEnd.left - branchPoint.left) * seg2dx + (arrowEnd.top - branchPoint.top) * seg2dy) / seg2Len;
+      const arrowLen = Math.max(0, Math.min(seg2Len, arrowProj));
       const color = CONFIG.ACTION_COLORS[pendingTrail.actionChar.charCodeAt(0) - 65] || CONFIG.TRAIL_COLOR;
       trailInfo = {
-        stemStart: edgeView.stemStart,
-        branchPoint: edgeView.branchPoint,
+        stemStart,
+        branchPoint,
         arrowEnd,
         color,
         width: CONFIG.TRAIL_WIDTH,
-        stemOffset,
-        stemLen: seg0Len - stemOffset,
+        stemOffset: segments[0].dist,
+        stemLen: seg1Len,
         arrowLen,
-        seg0Dist: seg0Len
+        seg0Dist: segments[0].dist + seg1Len
       };
     }
     const duration = totalDist * this.ANIMATION_SPEED;
@@ -1639,5 +1660,6 @@ var MouselabMDPSetup = (() => {
     }
   };
   jsPsych.plugins["mouselab-mdp"] = plugin;
+  return __toCommonJS(index_exports);
 })();
 //# sourceMappingURL=mouselab-mdp.js.map

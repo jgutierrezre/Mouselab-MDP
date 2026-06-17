@@ -7,6 +7,9 @@ dependencies = [
   "numpy",
   "scipy",
   "toolz",
+  "matplotlib",
+  "pandas",
+  "pyyaml",
 ]
 
 [tool.uv]

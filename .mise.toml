@@ -10,6 +10,10 @@ run = "uv sync && npm install"
 description = "Build the TypeScript plugin bundle"
 run = "npm run build"
 
+[tasks.ts-watch]
+description = "Watch and rebuild TypeScript on changes"
+run = "node esbuild.watch.js"
+
 [tasks.exp]
 description = "Generate trials, compile CoffeeScript, and build plugin"
 run = "cd experiment && make exp && cd .. && npm run build"
@@ -21,3 +25,19 @@ run = "cd experiment && make watch"
 [tasks.serve]
 description = "Serve the experiment locally"
 run = "node server.js"
+
+[tasks.trellis-examples]
+description = "Generate example participant datasets"
+run = "uv run experiment-trellis/generate_examples.py"
+
+[tasks.trellis-analyze]
+description = "Analyze participant data and export CSVs"
+run = "uv run experiment-trellis/analysis/analyze.py"
+
+[tasks.trellis-plot]
+description = "Generate plots from CSVs"
+run = "uv run experiment-trellis/analysis/visualize.py"
+
+[tasks.trellis-report]
+description = "Print experiment summary report"
+run = "uv run experiment-trellis/analysis/report.py"

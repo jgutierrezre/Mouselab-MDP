@@ -6,6 +6,8 @@ import "./core/mouselab-mdp-lifecycle";
 import { incrementTrialIndex } from "./core/utils";
 import type { TrialConfig } from "./types/types";
 
+export { MouselabMDP }; // exported for direct instantiation by non-jsPsych consumers
+
 let instance: MouselabMDP | null = null;
 
 const plugin = {

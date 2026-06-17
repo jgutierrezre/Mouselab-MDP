@@ -67,13 +67,6 @@ startSession = function(trials) {
     leftMessage: function() {
       return `Round: ${++i}/${trials.length}`;
     },
-    centerMessage: "&nbsp;",
-    rightMessage: "Score: <span id=mouselab-score/>",
-    lowerMessage: "Navigate with the arrow keys.",
-    completionMessage: "Press any key to continue.",
-    scoreFormat: function(s) {
-      return `$${s}`;
-    },
     timeline: trials
   };
   // welcome

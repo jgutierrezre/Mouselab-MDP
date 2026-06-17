@@ -62,11 +62,6 @@ startSession = (trials) ->
   main =
     type: 'mouselab-mdp'
     leftMessage: -> "Round: #{++i}/#{trials.length}"
-    centerMessage: "&nbsp;"
-    rightMessage: "Score: <span id=mouselab-score/>"
-    lowerMessage: "Navigate with the arrow keys."
-    completionMessage: "Press any key to continue."
-    scoreFormat: (s) -> "$#{s}"
     timeline: trials
 
   timeline = [
