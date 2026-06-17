@@ -44,6 +44,7 @@ import type { EdgeData, TransitionInfo, TrailInfo, Waypoint, Segment } from "../
     (this as any).animateMove(
       s1g,
       reward,
+      edgeView != null ? edgeView.stemStart : undefined,
       edgeView != null ? edgeView.branchPoint : undefined,
       s1
     );
@@ -91,7 +92,8 @@ import type { EdgeData, TransitionInfo, TrailInfo, Waypoint, Segment } from "../
   this: MouselabMDP,
   s1g: any,
   reward: number,
-  via: { left: number; top: number } | undefined,
+  stemStart: { left: number; top: number } | undefined,
+  branchPoint: { left: number; top: number } | undefined,
   finalState: string
 ): void {
   if (!this.player) {
@@ -101,8 +103,11 @@ import type { EdgeData, TransitionInfo, TrailInfo, Waypoint, Segment } from "../
   }
 
   const waypoints: Waypoint[] = [{ left: this.player.left, top: this.player.top }];
-  if (via != null) {
-    waypoints.push(via);
+  if (stemStart != null) {
+    waypoints.push(stemStart);
+  }
+  if (branchPoint != null) {
+    waypoints.push(branchPoint);
   }
   waypoints.push({ left: s1g.left, top: s1g.top });
 
@@ -121,14 +126,15 @@ import type { EdgeData, TransitionInfo, TrailInfo, Waypoint, Segment } from "../
 
   let trailInfo: TrailInfo | null = null;
   const pendingTrail = this.pendingTrail;
-  if (pendingTrail && waypoints.length >= 3) {
+  const hasEdge = stemStart && branchPoint && waypoints.length >= 4 && pendingTrail;
+  if (hasEdge) {
     const edgeView = pendingTrail.edgeView;
     const childNode = edgeView.children[pendingTrail.outcomeIndex];
     const nodeGap =
       edgeView.stemStart.left - edgeView.parent.left - edgeView.parent.radius;
     const ang = angle(
-      edgeView.branchPoint.left,
-      edgeView.branchPoint.top,
+      branchPoint.left,
+      branchPoint.top,
       childNode.left,
       childNode.top
     );
@@ -139,35 +145,33 @@ import type { EdgeData, TransitionInfo, TrailInfo, Waypoint, Segment } from "../
       -(childNode.radius + nodeGap + CONFIG.TRAIL_OFFSET)
     );
     const arrowEnd = { left: ae[0], top: ae[1] };
-    const seg0dx = waypoints[1].left - waypoints[0].left;
-    const seg0dy = waypoints[1].top - waypoints[0].top;
-    const seg0Len = segments[0].dist;
-    const stemProj =
-      ((edgeView.stemStart.left - waypoints[0].left) * seg0dx +
-        (edgeView.stemStart.top - waypoints[0].top) * seg0dy) /
-      seg0Len;
-    const stemOffset = Math.max(0, Math.min(seg0Len, stemProj));
-    const seg1dx = waypoints[2].left - waypoints[1].left;
-    const seg1dy = waypoints[2].top - waypoints[1].top;
+
+    // seg0 = player → stemStart   (no trail)
+    // seg1 = stemStart → branchPoint   (stem trail)
+    // seg2 = branchPoint → targetNode  (branch trail)
     const seg1Len = segments[1].dist;
+    const seg2dx = waypoints[3].left - waypoints[2].left;
+    const seg2dy = waypoints[3].top - waypoints[2].top;
+    const seg2Len = segments[2].dist;
     const arrowProj =
-      ((arrowEnd.left - waypoints[1].left) * seg1dx +
-        (arrowEnd.top - waypoints[1].top) * seg1dy) /
-      seg1Len;
-    const arrowLen = Math.max(0, Math.min(seg1Len, arrowProj));
+      ((arrowEnd.left - branchPoint.left) * seg2dx +
+        (arrowEnd.top - branchPoint.top) * seg2dy) /
+      seg2Len;
+    const arrowLen = Math.max(0, Math.min(seg2Len, arrowProj));
+
     const color =
       CONFIG.ACTION_COLORS[pendingTrail.actionChar.charCodeAt(0) - 65] ||
       CONFIG.TRAIL_COLOR;
     trailInfo = {
-      stemStart: edgeView.stemStart,
-      branchPoint: edgeView.branchPoint,
+      stemStart: stemStart,
+      branchPoint: branchPoint,
       arrowEnd: arrowEnd,
       color: color,
       width: CONFIG.TRAIL_WIDTH,
-      stemOffset: stemOffset,
-      stemLen: seg0Len - stemOffset,
+      stemOffset: segments[0].dist,
+      stemLen: seg1Len,
       arrowLen: arrowLen,
-      seg0Dist: seg0Len,
+      seg0Dist: segments[0].dist + seg1Len,
     };
   }
 
